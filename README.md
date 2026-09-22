@@ -1,6 +1,6 @@
 # Swing Copilot — סוכן מחקר וסריקת עסקאות סווינג
 
-**Phase A: תשתית ליבה — הושלם ✅**
+**Phase A + Phase C: תשתית ליבה + שכבת דמיון — הושלמו ✅**
 **+ דרישות הפרויקט הסופי של הקורס — משולבות כאן (מסלול אחד מאוחד)**
 פרויקט גמר, תעשייה וניהול שנה ד' | קורס AI סוכנים
 המשך ישיר לעבודות 1–3 (Google AI Studio), עכשיו כקוד Python אמיתי מבוסס Claude API.
@@ -30,6 +30,7 @@ swing_copilot/
 ├── tools/
 │   ├── risk.py               # מתמטיקה טהורה: R:R, position sizing
 │   ├── rules_engine.py       # שער הכניסה הדטרמיניסטי (Pass/Fail)
+│   ├── similarity.py         # Phase C: Cosine/Jaccard בקוד אמיתי, סקיילבילי
 │   ├── market_data.py        # yfinance: מחיר, שווי שוק, OHLC (DREAM-01 חלקי)
 │   ├── earnings.py           # yfinance: מועד דוחות קרוב
 │   └── orders.py             # תזכיר עסקה + Audit Log (רואה ל-REQ-04)
@@ -39,6 +40,7 @@ swing_copilot/
 │   └── loop.py               # לולאת Observe-Think-Act בפועל
 ├── tests/
 │   └── test_rules_engine.py  # משחזר את 3 מקרי הבדיקה מעבודה 1/2 — 9/9 עוברים
+│   └── test_similarity.py    # משחזר את ממצאי עבודה 3 (Cosine/Jaccard) — 7/7 עוברים
 ├── eval/                      # דרישות הקורס: נושא 3 (ולידציה + מבחן עמידות)
 │   ├── validation_questions.json   # 8 שאלות עם תשובה ידועה
 │   ├── stress_test_questions.json  # 5 שאלות "קשות"
@@ -73,9 +75,9 @@ python main.py NVDA
 
 ## הרצת הבדיקות
 ```bash
-python3 -m unittest tests.test_rules_engine -v
+python3 -m unittest discover -s tests -v
 ```
-תוצאה צפויה: `Ran 9 tests ... OK`
+תוצאה צפויה: `Ran 16 tests ... OK`
 
 ## מה נאכף אוטומטית (Hard Rules, config/rules_config.py)
 | כלל | ברירת מחדל | הערה |
@@ -90,8 +92,8 @@ Phase A ממש חלק מהתשתית שכל שאר החלומות ייבנו ע�
 - **DREAM-01** (נתונים חיים) — yfinance מחליף CSV סטטי; עדיין לא Tick-by-Tick בזמן אמת.
 - תשתית ל-**REQ-04 / Audit Log** — כל תזכיר (מאושר/נדחה) נשמר אוטומטית ל-`data/audit_log.csv`.
 
-עדיין לא ממומש (מתוכנן לפאזות הבאות): DREAM-02/03 (תבניות ואינדיקטורים), שכבת
-הדמיון בקוד (Phase C), DREAM-08/09/10 (RAG ומקורות חיצוניים, Phase E), DREAM-05/06/07
+עדיין לא ממומש (מתוכנן לפאזות הבאות): DREAM-02/03 (תבניות ואינדיקטורים), Phase B
+(נתוני שוק חיים מלאים), DREAM-08/09/10 (RAG ומקורות חיצוניים, Phase E), DREAM-05/06/07
 (דשבורד, בונה תבניות, טלגרם, Phase F).
 
 ## עקרונות תכנון שנשמרו מהעבודות הקודמות

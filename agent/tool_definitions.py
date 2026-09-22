@@ -72,6 +72,26 @@ FETCH_WATCHLIST_TOOL = {
     },
 }
 
+FIND_SIMILAR_STOCKS_TOOL = {
+    "name": "find_similar_stocks",
+    "description": (
+        "מפעיל את שכבת הדמיון על רשימת המעקב, ומחזיר את המניות הדומות ביותר "
+        "למניה נתונה (Cosine או Jaccard). השתמש בכלי הזה כשעסקה נפסלת "
+        "כדי למצוא חלופה - אל תמליץ על מניה אחרת בלי להפעיל אותו קודם."
+    ),
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "ticker": {"type": "string", "description": "סימול המניה הבסיסית (זו שנפסלה)"},
+            "min_risk_reward": {
+                "type": "number",
+                "description": "אם צוין, הכלי יחזיר את המניה הדומה ביותר שגם עומדת ביחס סיכון/סיכוי הזה או מעליו",
+            },
+        },
+        "required": ["ticker"],
+    },
+}
+
 FETCH_OHLC_TOOL = {
     "name": "fetch_recent_ohlc",
     "description": "שולף נתוני מחיר היסטוריים (Open/High/Low/Close/Volume) לימים האחרונים - בסיס לזיהוי תבניות טכניות.",
@@ -93,6 +113,7 @@ ALL_TOOLS = [
     FETCH_EARNINGS_TOOL,
     FETCH_WATCHLIST_TOOL,
     FETCH_OHLC_TOOL,
+    FIND_SIMILAR_STOCKS_TOOL,
     EVALUATE_TRADE_TOOL,
     WEB_SEARCH_TOOL,
 ]

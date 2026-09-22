@@ -21,6 +21,7 @@ from config.rules_config import MAX_AGENT_STEPS, ANALYST_MODEL
 from tools.market_data import fetch_market_data, fetch_recent_ohlc
 from tools.earnings import fetch_earnings_calendar
 from tools.watchlist import fetch_watchlist_entry
+from tools.similarity import find_similar_stocks, find_valid_alternative
 from tools.risk import calc_position_size
 from tools.rules_engine import evaluate_hard_rules
 from tools.orders import create_draft_order, format_memo_hebrew
@@ -42,6 +43,14 @@ def _dispatch_tool(tool_name: str, tool_input: dict) -> dict:
     if tool_name == "fetch_watchlist_entry":
         entry = fetch_watchlist_entry(tool_input["ticker"])
         return entry.__dict__
+
+    if tool_name == "find_similar_stocks":
+        min_rr = tool_input.get("min_risk_reward")
+        if min_rr is not None:
+            alt = find_valid_alternative(tool_input["ticker"], min_risk_reward=min_rr)
+            return {"best_valid_alternative": alt.__dict__ if alt else None}
+        ranked = find_similar_stocks(tool_input["ticker"])
+        return {"ranked_candidates": [r.__dict__ for r in ranked]}
 
     if tool_name == "fetch_recent_ohlc":
         return {"candles": fetch_recent_ohlc(tool_input["ticker"], tool_input.get("days", 10))}
