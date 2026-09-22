@@ -73,14 +73,20 @@ def fetch_market_data(ticker: str) -> MarketSnapshot:
     )
 
 
-def fetch_recent_ohlc(ticker: str, days: int = 10) -> list[dict]:
+def fetch_recent_ohlc(ticker: str, days: int = 10, interval: str = "1d") -> list[dict]:
     """
-    שולף את ה-OHLC (Open, High, Low, Close) ההיסטורי של N הימים האחרונים.
-    זהו הבסיס הדרוש עבור DREAM-02 (זיהוי תבניות כמו Inside Bar) בשלב הבא -
-    התבנית לא "מנוחשת" מטקסט, אלא מחושבת מהנתונים המספריים האלה.
+    שולף OHLC (Open, High, Low, Close, Volume) היסטורי.
+    זהו הבסיס עבור tools/patterns.py ו-tools/indicators.py (DREAM-02/03).
+
+    interval: "1d" (ברירת מחדל, יציב לאורך זמן רב) או רזולוציה תוך-יומית
+    כמו "5m"/"15m"/"1h" - שדרוג חלקי וחינמי ל-DREAM-01 (קרוב הרבה יותר
+    לזמן אמת מיום-סגירה, גם אם עדיין לא Tick-by-Tick אמיתי). yfinance
+    מגביל היסטוריה תוך-יומית לחלון קצר (בד"כ עד 60 יום ל-1h/5m/15m,
+    ועד 7 ימים ל-1m) - זו מגבלת הספק החינמי, לא שגיאת קוד.
     """
     yf_ticker = yf.Ticker(ticker)
-    hist = yf_ticker.history(period=f"{days}d")
+    period = f"{days}d" if interval == "1d" else f"{min(days, 59)}d"
+    hist = yf_ticker.history(period=period, interval=interval)
 
     if hist.empty:
         return []

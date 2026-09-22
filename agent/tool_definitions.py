@@ -94,14 +94,49 @@ FIND_SIMILAR_STOCKS_TOOL = {
 
 FETCH_OHLC_TOOL = {
     "name": "fetch_recent_ohlc",
-    "description": "שולף נתוני מחיר היסטוריים (Open/High/Low/Close/Volume) לימים האחרונים - בסיס לזיהוי תבניות טכניות.",
+    "description": "שולף נתוני מחיר היסטוריים (Open/High/Low/Close/Volume) - בסיס לזיהוי תבניות ולחישוב אינדיקטורים. יש להריץ אותו לפני detect_chart_patterns או analyze_technical_indicators.",
     "input_schema": {
         "type": "object",
         "properties": {
             "ticker": {"type": "string"},
-            "days": {"type": "integer", "description": "כמות ימים לאחור, ברירת מחדל 10"},
+            "days": {"type": "integer", "description": "כמות ימים לאחור, ברירת מחדל 10 (עבור אינדיקטורים כמו RSI/ATR/SMA50 צריך לפחות 55-60 ימים)"},
+            "interval": {"type": "string", "description": "רזולוציית הנרות: '1d' (ברירת מחדל) או תוך-יומי כמו '5m'/'15m'/'1h'"},
         },
         "required": ["ticker"],
+    },
+}
+
+DETECT_PATTERNS_TOOL = {
+    "name": "detect_chart_patterns",
+    "description": (
+        "מזהה תבניות טכניות (Inside Bar, Breakout, Pullback to Support, Range Bound) "
+        "מתוך נתוני OHLC בפועל - נוסחה לוגית-מתמטית, לא ניחוש משם התבנית. "
+        "יש להעביר את תוצאת fetch_recent_ohlc כקלט (candles), ואופציונלית רמת תמיכה "
+        "(מ-fetch_watchlist_entry) עבור בדיקת Pullback."
+    ),
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "candles": {"type": "array", "description": "רשימת הנרות שהתקבלה מ-fetch_recent_ohlc"},
+            "support_level": {"type": "number", "description": "רמת תמיכה ידועה, לבדיקת Pullback to Support (אופציונלי)"},
+        },
+        "required": ["candles"],
+    },
+}
+
+ANALYZE_INDICATORS_TOOL = {
+    "name": "analyze_technical_indicators",
+    "description": (
+        "מחשב אינדיקטורים כמותיים (SMA20/50, EMA20, RSI14, ATR14, נפח יחסי) מתוך "
+        "נתוני OHLC. יש להעביר את תוצאת fetch_recent_ohlc כקלט (candles). "
+        "שימושי לחיזוק/החלשת הביטחון בתזכיר, לא כתחליף לחוקי הברזל של evaluate_trade."
+    ),
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "candles": {"type": "array", "description": "רשימת הנרות שהתקבלה מ-fetch_recent_ohlc"},
+        },
+        "required": ["candles"],
     },
 }
 
@@ -113,6 +148,8 @@ ALL_TOOLS = [
     FETCH_EARNINGS_TOOL,
     FETCH_WATCHLIST_TOOL,
     FETCH_OHLC_TOOL,
+    DETECT_PATTERNS_TOOL,
+    ANALYZE_INDICATORS_TOOL,
     FIND_SIMILAR_STOCKS_TOOL,
     EVALUATE_TRADE_TOOL,
     WEB_SEARCH_TOOL,
