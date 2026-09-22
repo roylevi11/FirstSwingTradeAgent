@@ -1,0 +1,13 @@
+Ticker,Company_Name,Sector,Current_Price,Key_Support,Key_Resistance,Days_To_Earnings,Technical_Pattern,Market_Cap,PE_Ratio,Source_Tag
+NVDA,NVIDIA Corp,Technology,128.40,118.00,140.00,76,Inside Bar Consolidation,,,Core_Watchlist
+AMD,Advanced Micro Devices,Technology,155.00,142.00,170.00,45,Inside Bar Consolidation,,,Core_Watchlist
+AAPL,Apple Inc,Technology,220.50,215.00,232.00,28,Breakout Confirmation,,,Core_Watchlist
+MSFT,Microsoft Corp,Technology,415.00,405.00,430.00,35,Pullback to Support,,,Core_Watchlist
+TSLA,Tesla Inc,Consumer Cyclical,250.00,240.00,260.00,45,Range Bound,,,Core_Watchlist
+AMZN,Amazon.com Inc,Consumer Cyclical,185.00,175.00,205.00,30,Breakout Confirmation,,,Core_Watchlist
+XOM,Exxon Mobil Corp,Energy,115.00,110.00,125.00,60,Pullback to Support,,,Core_Watchlist
+CVX,Chevron Corp,Energy,150.00,144.00,162.00,55,Pullback to Support,,,Core_Watchlist
+META,Meta Platforms,Technology,605.00,580.00,620.00,38,Breakout Setup,,,Raz_Radar
+MSTR,MicroStrategy,Technology,145.00,130.00,180.00,42,Bitcoin Discount Play,,,Raz_Discord
+WDC,Western Digital,Technology,,,,,Cup and Handle,,,Raz_Radar
+QUBT,Quantum Computing Inc,Technology,,,,,Risk-On Momentum,,,Raz_Radar
