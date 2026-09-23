@@ -1,0 +1,170 @@
+{
+  "generated_at": "2026-09-23 22:14:06",
+  "period": "2y",
+  "horizon_days": 10,
+  "target_r": 2.0,
+  "tickers_used": 1130,
+  "split_date": "2025-09-24",
+  "patterns": {
+    "NONE": {
+      "n": 336651,
+      "win_rate": 0.481,
+      "avg_r": 0.069,
+      "target_hit_rate": 0.113,
+      "edge": 0.5,
+      "insufficient_sample": false
+    },
+    "Inside Bar Consolidation": {
+      "n": 59162,
+      "win_rate": 0.476,
+      "avg_r": 0.086,
+      "target_hit_rate": 0.136,
+      "edge": 0.58,
+      "insufficient_sample": false,
+      "edge_basis": "paired_excess_r",
+      "paired_excess_r": 0.0239,
+      "t_stat": 5.29
+    },
+    "Pullback to Support": {
+      "n": 46226,
+      "win_rate": 0.318,
+      "avg_r": -0.052,
+      "target_hit_rate": 0.313,
+      "edge": 0.087,
+      "insufficient_sample": false,
+      "edge_basis": "paired_excess_r",
+      "paired_excess_r": -0.124,
+      "t_stat": -13.43
+    },
+    "Range Bound": {
+      "n": 38216,
+      "win_rate": 0.417,
+      "avg_r": -0.031,
+      "target_hit_rate": 0.127,
+      "edge": 0.212,
+      "insufficient_sample": false,
+      "edge_basis": "paired_excess_r",
+      "paired_excess_r": -0.0865,
+      "t_stat": -5.03
+    },
+    "Breakout Confirmation": {
+      "n": 8867,
+      "win_rate": 0.52,
+      "avg_r": 0.054,
+      "target_hit_rate": 0.018,
+      "edge": 0.348,
+      "insufficient_sample": false,
+      "edge_basis": "paired_excess_r",
+      "paired_excess_r": -0.0455,
+      "t_stat": -5.91
+    }
+  },
+  "first_half": {
+    "NONE": {
+      "n": 144500,
+      "win_rate": 0.492,
+      "avg_r": 0.069,
+      "target_hit_rate": 0.107,
+      "edge": 0.5,
+      "insufficient_sample": false
+    },
+    "Inside Bar Consolidation": {
+      "n": 26653,
+      "win_rate": 0.495,
+      "avg_r": 0.103,
+      "target_hit_rate": 0.129,
+      "edge": 0.517,
+      "insufficient_sample": false
+    },
+    "Pullback to Support": {
+      "n": 20131,
+      "win_rate": 0.306,
+      "avg_r": -0.085,
+      "target_hit_rate": 0.303,
+      "edge": 0.423,
+      "insufficient_sample": false
+    },
+    "Range Bound": {
+      "n": 19669,
+      "win_rate": 0.424,
+      "avg_r": -0.012,
+      "target_hit_rate": 0.131,
+      "edge": 0.46,
+      "insufficient_sample": false
+    },
+    "Breakout Confirmation": {
+      "n": 3794,
+      "win_rate": 0.525,
+      "avg_r": 0.043,
+      "target_hit_rate": 0.019,
+      "edge": 0.487,
+      "insufficient_sample": false
+    }
+  },
+  "second_half": {
+    "NONE": {
+      "n": 192151,
+      "win_rate": 0.473,
+      "avg_r": 0.068,
+      "target_hit_rate": 0.117,
+      "edge": 0.5,
+      "insufficient_sample": false
+    },
+    "Inside Bar Consolidation": {
+      "n": 32509,
+      "win_rate": 0.461,
+      "avg_r": 0.072,
+      "target_hit_rate": 0.142,
+      "edge": 0.502,
+      "insufficient_sample": false
+    },
+    "Pullback to Support": {
+      "n": 26095,
+      "win_rate": 0.327,
+      "avg_r": -0.026,
+      "target_hit_rate": 0.321,
+      "edge": 0.453,
+      "insufficient_sample": false
+    },
+    "Range Bound": {
+      "n": 18547,
+      "win_rate": 0.409,
+      "avg_r": -0.052,
+      "target_hit_rate": 0.124,
+      "edge": 0.44,
+      "insufficient_sample": false
+    },
+    "Breakout Confirmation": {
+      "n": 5073,
+      "win_rate": 0.516,
+      "avg_r": 0.063,
+      "target_hit_rate": 0.018,
+      "edge": 0.497,
+      "insufficient_sample": false
+    }
+  },
+  "significance": {
+    "Inside Bar Consolidation": {
+      "tickers": 1126,
+      "mean_excess_r": 0.0239,
+      "t_stat": 5.29
+    },
+    "Pullback to Support": {
+      "tickers": 1111,
+      "mean_excess_r": -0.124,
+      "t_stat": -13.43
+    },
+    "Range Bound": {
+      "tickers": 631,
+      "mean_excess_r": -0.0865,
+      "t_stat": -5.03
+    },
+    "Breakout Confirmation": {
+      "tickers": 857,
+      "mean_excess_r": -0.0455,
+      "t_stat": -5.91
+    }
+  },
+  "caveat": "רשימת המדדים הנוכחית (Survivorship Bias), מקרים חופפים, ללא עמלות/החלקה - אינדיקציה, לא הבטחה.",
+  "universe_size_requested": 1143
+}

@@ -13,8 +13,9 @@
 ## מחירים ונתונים
 - מחיר תמיד חי (`tools/market_data.fetch_live_price`); המחיר ב-`data/watchlist.csv` לא נקרא.
 - תמיכה/התנגדות/תבנית לעסקה: `analyze_multi_timeframe` (חי). הרמות ב-CSV הן הפניה היסטורית בלבד.
-- העדפה למקורות חינמיים ללא מפתח: Finviz, StockTwits, TradingView scanner, SEC EDGAR.
-- Market Momentum Radar: לא משתמשים (robots.txt שלו אוסר `/api/` ו-`/v2/`). לכבד robots.txt בכל מקור חדש.
+- העדפה למקורות חינמיים ללא מפתח: Finviz, StockTwits, SEC EDGAR.
+- לא משתמשים: Market Momentum Radar (robots.txt אוסר `/api/`, `/v2/`) ו-TradingView scanner (robots.txt אוסר הכול חוץ מ-`/global/scan`). לכבד robots.txt בכל מקור חדש.
+- שכבת הדמיון (`find_similar_stocks`) פועלת על נתונים חיים בלבד (`tools/live_similarity.py`): מאפיינים ממספר טווחי זמן, קורלציה היסטורית, ו-Edge היסטורי לתבניות (`tools/pattern_stats.py`, נבדק על S&P500+NASDAQ; לחדש עם `python -m tools.pattern_stats`, ~4 דקות). מה-CSV נלקחת רק זהות המניה. "אין תבנית" (None) הוא ערך לגיטימי.
 - נתון חסר מדווח כחסר, לעולם לא מומצא.
 
 ## חוקי ברזל (config/rules_config.py)

@@ -5,9 +5,6 @@ external_sources.py
 
 - Finviz         : כותרות חדשות + נתוני snapshot (יעד אנליסטים, RSI, Short Float...)
                    - קריאת דף ה-quote הציבורי (HTML).
-- TradingView    : המלצה טכנית מצטברת (Recommend.All) ואינדיקטורים, דרך נקודת
-                   הקצה הציבורית של ה-scanner. אין כאן API רשמי - זו נקודת קצה
-                   לא מתועדת שעלולה להשתנות; כל כשל מדווח, לא מוסתר.
 
 כללי ברזל זהים לשאר הכלים: כל כשל (רשת, חסימה, שינוי מבנה) מוחזר כ-
 {"available": False, "error": ...} - לעולם לא ממציאים נתון חסר. בקשות
@@ -15,7 +12,6 @@ external_sources.py
 """
 
 import html
-import json
 import re
 import time
 import urllib.error
@@ -98,66 +94,3 @@ def fetch_finviz(ticker: str, limit: int = 8) -> dict:
         return result
     except Exception as exc:
         return {"ticker": ticker.upper(), **_fail("finviz", exc)}
-
-
-# ---------------------------- TradingView ----------------------------
-
-_TV_COLUMNS = [
-    "close", "change", "Recommend.All", "Recommend.MA", "Recommend.Other", "RSI",
-    "SMA20", "SMA50", "SMA200", "ATR", "ADX", "Perf.W", "Perf.1M", "relative_volume_10d_calc",
-]
-
-
-def _tv_label(score: float | None) -> str | None:
-    if score is None:
-        return None
-    if score >= 0.5:
-        return "Strong Buy"
-    if score >= 0.1:
-        return "Buy"
-    if score > -0.1:
-        return "Neutral"
-    if score > -0.5:
-        return "Sell"
-    return "Strong Sell"
-
-
-def parse_tradingview(payload: dict) -> dict | None:
-    rows = payload.get("data") or []
-    if not rows:
-        return None
-    row = rows[0]
-    values = dict(zip(_TV_COLUMNS, row["d"]))
-    return {
-        "source": "tradingview",
-        "available": True,
-        "tv_symbol": row["s"],
-        "indicators": values,
-        "recommendation_all": _tv_label(values.get("Recommend.All")),
-        "recommendation_ma": _tv_label(values.get("Recommend.MA")),
-        "recommendation_oscillators": _tv_label(values.get("Recommend.Other")),
-        "note": "דירוג טכני מצטבר של TradingView (יומי); נקודת קצה לא רשמית.",
-    }
-
-
-def fetch_tradingview_technicals(ticker: str) -> dict:
-    t = ticker.upper()
-    body = json.dumps(
-        {
-            "symbols": {"tickers": [f"NASDAQ:{t}", f"NYSE:{t}", f"AMEX:{t}"]},
-            "columns": _TV_COLUMNS,
-        }
-    ).encode()
-    try:
-        raw = _http(
-            "https://scanner.tradingview.com/america/scan",
-            data=body,
-            headers={"Content-Type": "application/json"},
-        )
-        result = parse_tradingview(json.loads(raw))
-        if result is None:
-            return {"ticker": t, "source": "tradingview", "available": False, "error": "הסימבול לא נמצא (NASDAQ/NYSE/AMEX)"}
-        result["ticker"] = t
-        return result
-    except Exception as exc:
-        return {"ticker": t, **_fail("tradingview", exc)}

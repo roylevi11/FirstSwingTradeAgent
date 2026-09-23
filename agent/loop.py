@@ -21,7 +21,7 @@ from config.rules_config import MAX_AGENT_STEPS, ANALYST_MODEL
 from tools.market_data import fetch_market_data, fetch_recent_ohlc
 from tools.earnings import fetch_earnings_calendar
 from tools.watchlist import fetch_watchlist_entry
-from tools.similarity import find_similar_stocks, find_valid_alternative
+from tools.live_similarity import find_similar_live
 from tools.patterns import detect_patterns
 from tools.indicators import analyze_indicators
 from tools.multi_timeframe import analyze_multi_timeframe
@@ -32,7 +32,6 @@ from tools.risk import calc_position_size
 from tools.rules_engine import evaluate_hard_rules
 from tools.external_sources import (
     fetch_finviz,
-    fetch_tradingview_technicals,
 )
 from tools.orders import create_draft_order, format_memo_hebrew
 
@@ -55,12 +54,12 @@ def _dispatch_tool(tool_name: str, tool_input: dict) -> dict:
         return entry.__dict__
 
     if tool_name == "find_similar_stocks":
-        min_rr = tool_input.get("min_risk_reward")
-        if min_rr is not None:
-            alt = find_valid_alternative(tool_input["ticker"], min_risk_reward=min_rr)
-            return {"best_valid_alternative": alt.__dict__ if alt else None}
-        ranked = find_similar_stocks(tool_input["ticker"])
-        return {"ranked_candidates": [r.__dict__ for r in ranked]}
+        result = find_similar_live(
+            tool_input["ticker"], top_n=5, min_risk_reward=tool_input.get("min_risk_reward")
+        )
+        if tool_input.get("min_risk_reward") is not None:
+            result["best_valid_alternative"] = result["ranking"][0] if result["ranking"] else None
+        return result
 
     if tool_name == "fetch_recent_ohlc":
         return {
@@ -95,9 +94,6 @@ def _dispatch_tool(tool_name: str, tool_input: dict) -> dict:
 
     if tool_name == "fetch_finviz":
         return fetch_finviz(tool_input["ticker"], tool_input.get("limit", 8))
-
-    if tool_name == "fetch_tradingview_technicals":
-        return fetch_tradingview_technicals(tool_input["ticker"])
 
     if tool_name == "calc_position_size":
         return calc_position_size(

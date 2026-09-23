@@ -128,7 +128,7 @@ def find_similar_stocks(
     entries ניתן להזרקה (לבדיקות); ברירת מחדל: כל data/watchlist.csv.
     """
     if entries is None:
-        entries = load_all_watchlist_entries(live_prices=True)
+        entries = load_all_watchlist_entries(live=True)
 
     base = next((e for e in entries if e.ticker.upper() == base_ticker.upper()), None)
     if base is None:

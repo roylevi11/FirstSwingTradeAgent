@@ -169,9 +169,12 @@ FETCH_SEC_FILINGS_TOOL = {
 FIND_SIMILAR_STOCKS_TOOL = {
     "name": "find_similar_stocks",
     "description": (
-        "מפעיל את שכבת הדמיון על רשימת המעקב, ומחזיר את המניות הדומות ביותר "
-        "למניה נתונה (Cosine או Jaccard). השתמש בכלי הזה כשעסקה נפסלת "
-        "כדי למצוא חלופה - אל תמליץ על מניה אחרת בלי להפעיל אותו קודם."
+        "שכבת הדמיון החיה: מדרגת את מניות רשימת המעקב לפי דמיון למניה נתונה, על נתונים "
+        "חיים בלבד (7 טווחי זמן 5m..1W): מומנטום, מגמה, RSI, תנודתיות, יחס סיכון/סיכוי, "
+        "סקטור, דוחות, קורלציית תשואות היסטורית, ותבנית טכנית + הטווחים שבהם היא מופיעה "
+        "(None = אין תבנית, ערך לגיטימי). הדירוג הסופי (rank_score) משלב את הדמיון עם ה-Edge "
+        "ההיסטורי של תבנית המועמדת (בדיקת עבר). השתמש בו כשעסקה נפסלת כדי למצוא חלופה - "
+        "אל תמליץ על מניה אחרת בלי להפעיל אותו קודם, ואמת אותה בסוף עם analyze_multi_timeframe ו-evaluate_trade."
     ),
     "input_schema": {
         "type": "object",
@@ -179,7 +182,7 @@ FIND_SIMILAR_STOCKS_TOOL = {
             "ticker": {"type": "string", "description": "סימול המניה הבסיסית (זו שנפסלה)"},
             "min_risk_reward": {
                 "type": "number",
-                "description": "לא מומלץ: R:R מחושב מרמות מתויגות שעלולות להיות מיושנות (בדרך כלל יוחזר None). העדף בלי הפרמטר, והרץ analyze_multi_timeframe על כל מועמד",
+                "description": "אם צוין, יוחזרו רק מועמדות שיחס הסיכון/סיכוי החי שלהן (תמיכה/התנגדות יומיות) לפחות כזה; best_valid_alternative = הראשונה",
             },
         },
         "required": ["ticker"],
@@ -244,12 +247,6 @@ FETCH_FINVIZ_TOOL = {
     },
 }
 
-FETCH_TRADINGVIEW_TOOL = {
-    "name": "fetch_tradingview_technicals",
-    "description": "TradingView (חינמי): המלצה טכנית מצטברת (Strong Buy...Strong Sell), RSI, SMA20/50/200, ATR, ADX, ביצועים. משלים את analyze_technical_indicators.",
-    "input_schema": {"type": "object", "properties": {"ticker": {"type": "string"}}, "required": ["ticker"]},
-}
-
 # הכלי המובנה של Claude API - המקביל ל-Grounding with Google Search
 WEB_SEARCH_TOOL = {"type": "web_search_20260209", "name": "web_search"}
 
@@ -268,6 +265,5 @@ ALL_TOOLS = [
     EVALUATE_TRADE_TOOL,
     CALC_POSITION_SIZE_TOOL,
     FETCH_FINVIZ_TOOL,
-    FETCH_TRADINGVIEW_TOOL,
     WEB_SEARCH_TOOL,
 ]

@@ -33,13 +33,6 @@ class TestParsers(unittest.TestCase):
         self.assertEqual(r["news"][0]["url"], "https://e.com/a?x=1&y=2")
         self.assertEqual(r["snapshot"]["P/E"], "28.36")
 
-    def test_tradingview_label_mapping(self):
-        d = [0.0] * len(x._TV_COLUMNS)
-        d[x._TV_COLUMNS.index("Recommend.All")] = 0.4
-        r = x.parse_tradingview({"data": [{"s": "NASDAQ:NVDA", "d": d}]})
-        self.assertEqual(r["recommendation_all"], "Buy")
-        self.assertIsNone(x.parse_tradingview({"data": []}))
-
     def test_network_failure_is_reported_not_hidden(self):
         with mock.patch.object(x, "_http", side_effect=OSError("boom")):
             r = x.fetch_finviz("NVDA")
@@ -67,6 +60,41 @@ class TestLivePrice(unittest.TestCase):
         ]
         res = find_similar_stocks("A", entries=entries)
         self.assertIsNone(res[0].risk_reward_ratio)
+
+
+class TestLiveSimilarityInputs(unittest.TestCase):
+    def test_live_enrichment_replaces_every_csv_analysis_field(self):
+        """בשכבת הדמיון מהקובץ נשארת רק זהות המניה; כל השאר נגזר חי."""
+        from tools import watchlist as w
+        from tools.multi_timeframe import TimeframeSnapshot
+        from tools.earnings import EarningsInfo
+
+        snap = TimeframeSnapshot("1D", 300, 250.0, 240.0, 270.0, ["Breakout Confirmation", "Range Bound"], {})
+        w._LIVE_CACHE.clear()
+        with mock.patch("tools.multi_timeframe.analyze_timeframe", return_value=snap),              mock.patch("tools.earnings.fetch_earnings_calendar", return_value=EarningsInfo("TSLA", "2026-10-20", 20, True)),              mock.patch("tools.market_data.fetch_live_price", return_value=251.5):
+            entries = w.load_all_watchlist_entries(live=True)
+        tsla = next(e for e in entries if e.ticker == "TSLA")
+        self.assertEqual(tsla.current_price, 251.5)      # לא 250.00 מהקובץ
+        self.assertEqual((tsla.key_support, tsla.key_resistance), (240.0, 270.0))
+        self.assertEqual(tsla.technical_pattern, "Breakout Confirmation")  # לא Range Bound מהקובץ
+        self.assertEqual(tsla.days_to_earnings, 20)      # לא 45 מהקובץ
+        self.assertEqual(tsla.sector, "Consumer Cyclical")  # זהות נשמרת
+        self.assertEqual(tsla.data_source, "live")
+        w._LIVE_CACHE.clear()
+
+    def test_failed_live_data_is_none_not_csv_fallback(self):
+        from tools import watchlist as w
+        from tools.earnings import EarningsInfo
+
+        w._LIVE_CACHE.clear()
+        with mock.patch("tools.multi_timeframe.analyze_timeframe", side_effect=RuntimeError("no data")),              mock.patch("tools.earnings.fetch_earnings_calendar", return_value=EarningsInfo("X", None, None, False)),              mock.patch("tools.market_data.fetch_live_price", return_value=None):
+            entries = w.load_all_watchlist_entries(live=True)
+        nvda = next(e for e in entries if e.ticker == "NVDA")
+        self.assertIsNone(nvda.current_price)
+        self.assertIsNone(nvda.key_support)
+        self.assertIsNone(nvda.technical_pattern)
+        self.assertIsNone(nvda.days_to_earnings)
+        w._LIVE_CACHE.clear()
 
 
 if __name__ == "__main__":

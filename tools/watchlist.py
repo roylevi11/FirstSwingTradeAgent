@@ -14,6 +14,8 @@ Tools/Memory) - המידע הספציפי, המתויג-ידנית (Curated) ש�
 
 import csv
 import os
+import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 
 WATCHLIST_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "watchlist.csv")
@@ -33,6 +35,7 @@ class WatchlistEntry:
     source_tag: str | None = None
     price_source: str | None = None  # 'live' = מחיר אמיתי מ-yfinance; None = לא הועשר
     levels_status: str | None = None  # OK / PRICE_ABOVE_RESISTANCE / PRICE_BELOW_SUPPORT
+    data_source: str | None = None  # 'live' = כל שדות הניתוח נגזרו מנתונים חיים (שכבת הדמיון)
 
 
 def _row_to_entry(row: dict) -> WatchlistEntry:
@@ -82,6 +85,48 @@ def _apply_live_price(entry: WatchlistEntry) -> WatchlistEntry:
     return entry
 
 
+_LIVE_CACHE: dict[str, tuple[float, WatchlistEntry]] = {}
+_LIVE_CACHE_TTL = 600  # 10 דקות - כדי שכמה קריאות דמיון ברצף לא יחזרו על כל הרשת
+
+
+def _apply_live_analysis(entry: WatchlistEntry) -> WatchlistEntry:
+    """
+    העשרה חיה מלאה עבור שכבת הדמיון: המחיר, התמיכה/ההתנגדות (Donchian על
+    הטווח היומי), התבנית הטכנית וימי המסחר עד הדוחות נגזרים כולם מנתונים
+    חיים. מהקובץ נשארים רק נתוני זהות (טיקר, שם, סקטור, Source_Tag).
+    שדה שאי אפשר לחשב נשאר None - לעולם לא חוזרים לערך הישן מהקובץ.
+    """
+    from tools.earnings import fetch_earnings_calendar
+    from tools.multi_timeframe import TIMEFRAME_CONFIGS, analyze_timeframe
+
+    hit = _LIVE_CACHE.get(entry.ticker)
+    if hit and time.time() - hit[0] < _LIVE_CACHE_TTL:
+        return hit[1]
+
+    daily_cfg = next(cfg for cfg in TIMEFRAME_CONFIGS if cfg["label"] == "1D")
+    entry.current_price = entry.key_support = entry.key_resistance = None
+    entry.technical_pattern = entry.days_to_earnings = None
+    try:
+        snap = analyze_timeframe(entry.ticker, daily_cfg)
+        entry.current_price = snap.last_close
+        entry.key_support, entry.key_resistance = snap.support, snap.resistance
+        # כמה תבניות יכולות להתקיים יחד; לוקחים את הראשונה לפי סדר הבודקים
+        # (Inside Bar > Breakout > Pullback > Range Bound)
+        entry.technical_pattern = snap.patterns_found[0] if snap.patterns_found else None
+    except Exception:
+        pass
+    try:
+        info = fetch_earnings_calendar(entry.ticker)
+        entry.days_to_earnings = info.trading_days_until if info.data_available else None
+    except Exception:
+        pass
+
+    entry = _apply_live_price(entry)  # מחיר בזמן אמת (במקום סגירת היום האחרון)
+    entry.data_source = "live"
+    _LIVE_CACHE[entry.ticker] = (time.time(), entry)
+    return entry
+
+
 def fetch_watchlist_entry(ticker: str, live_price: bool = True) -> WatchlistEntry:
     """
     שולף את הידע המתויג-ידנית עבור מניה מתוך data/watchlist.csv.
@@ -101,19 +146,21 @@ def fetch_watchlist_entry(ticker: str, live_price: bool = True) -> WatchlistEntr
     return WatchlistEntry(ticker=ticker, found=False)
 
 
-def load_all_watchlist_entries(live_prices: bool = False) -> list[WatchlistEntry]:
+def load_all_watchlist_entries(live: bool = False) -> list[WatchlistEntry]:
     """
     טוען את כל השורות מ-watchlist.csv כרשימת WatchlistEntry.
     זהו הבסיס לשכבת הדמיון (tools/similarity.py) - כדי למצוא את המניה
-    הדומה ביותר, צריך קודם את הנתונים המתויגים של *כל* המניות ברשימה.
+    הדומה ביותר, צריך את המאפיינים של *כל* המניות ברשימה.
+    live=True: כל המאפיינים הטכניים (מחיר, תמיכה/התנגדות, תבנית, דוחות)
+    נגזרים מנתונים חיים במקביל; מהקובץ נלקחת רק זהות המניה.
     """
     if not os.path.isfile(WATCHLIST_PATH):
         return []
 
-    entries = []
     with open(WATCHLIST_PATH, newline="", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            entry = _row_to_entry(row)
-            entries.append(_apply_live_price(entry) if live_prices else entry)
+        entries = [_row_to_entry(row) for row in csv.DictReader(f)]
+
+    if live and entries:
+        with ThreadPoolExecutor(max_workers=6) as pool:
+            entries = list(pool.map(_apply_live_analysis, entries))
     return entries

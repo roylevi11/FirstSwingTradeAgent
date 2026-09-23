@@ -37,6 +37,11 @@ class TestRowConversion(unittest.TestCase):
         self.assertIsNone(result.change_pct)
         self.assertIsNone(result.volume)
 
+    def test_real_library_column_name_change_percent(self):
+        """finvizfinance מחזיר את העמודה בשם 'Change %' (נבדק בפועל מול הרשת)."""
+        result = _row_to_screened_stock({"Ticker": "AAPL", "Change %": "-0.80%"})
+        self.assertEqual(result.change_pct, -0.8)
+
     def test_negative_change_parsed_correctly(self):
         row = {"Ticker": "ABC", "Change": "-2.15%"}
         result = _row_to_screened_stock(row)
