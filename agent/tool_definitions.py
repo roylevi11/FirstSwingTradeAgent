@@ -91,6 +91,27 @@ ANALYZE_MULTI_TIMEFRAME_TOOL = {
     },
 }
 
+RUN_FINVIZ_SCREEN_TOOL = {
+    "name": "run_finviz_screen",
+    "description": (
+        "מריץ סריקת מניות רחבה מ-Finviz (גישה ציבורית חינמית, לא Finviz Elite) "
+        "לפי פילטרים (סקטור, מדד וכו'), ומחזיר רשימת מניות מועמדות מחוץ "
+        "לרשימת המעקב הקבועה. שימושי כשמבקשים 'למצוא הזדמנויות חדשות' "
+        "ולא רק לנתח מניה ידועה. כל מניה שמוחזרת מתויגת Source_Tag=Finviz_Screen."
+    ),
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "filters": {
+                "type": "object",
+                "description": "פילטרים בפורמט finvizfinance, למשל {\"Sector\": \"Technology\", \"Index\": \"S&P 500\"}",
+            },
+            "limit": {"type": "integer", "description": "מספר מניות מקסימלי להחזיר, ברירת מחדל 20"},
+        },
+        "required": [],
+    },
+}
+
 FIND_SIMILAR_STOCKS_TOOL = {
     "name": "find_similar_stocks",
     "description": (
@@ -170,6 +191,7 @@ ALL_TOOLS = [
     DETECT_PATTERNS_TOOL,
     ANALYZE_INDICATORS_TOOL,
     ANALYZE_MULTI_TIMEFRAME_TOOL,
+    RUN_FINVIZ_SCREEN_TOOL,
     FIND_SIMILAR_STOCKS_TOOL,
     EVALUATE_TRADE_TOOL,
     WEB_SEARCH_TOOL,
