@@ -77,5 +77,19 @@ class TestSupportResistance(unittest.TestCase):
         self.assertIsNone(resistance)
 
 
+class TestTimeframeConfig(unittest.TestCase):
+    def test_seven_timeframes_configured(self):
+        from tools.multi_timeframe import TIMEFRAME_CONFIGS
+        labels = [tf["label"] for tf in TIMEFRAME_CONFIGS]
+        self.assertEqual(labels, ["5m", "15m", "30m", "1h", "4h", "1D", "1W"])
+
+    def test_weekly_not_treated_as_intraday(self):
+        """1W (yfinance interval '1wk') לא אמור להיתפס במגבלת 59 הימים של נתונים תוך-יומיים."""
+        from tools.market_data import INTRADAY_INTERVALS
+        self.assertNotIn("1wk", INTRADAY_INTERVALS)
+        self.assertNotIn("1d", INTRADAY_INTERVALS)
+        self.assertIn("60m", INTRADAY_INTERVALS)  # משמש גם עבור 1h וגם עבור 4h (resample)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

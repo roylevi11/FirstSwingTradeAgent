@@ -27,6 +27,7 @@ TIMEFRAME_CONFIGS = [
     {"label": "1h", "yf_interval": "60m", "days": 30, "resample_from_60m": None},
     {"label": "4h", "yf_interval": "60m", "days": 55, "resample_from_60m": 4},
     {"label": "1D", "yf_interval": "1d", "days": 250, "resample_from_60m": None},
+    {"label": "1W", "yf_interval": "1wk", "days": 730, "resample_from_60m": None},
 ]
 
 

@@ -82,7 +82,7 @@ python main.py NVDA
 ```bash
 python3 -m unittest discover -s tests -v
 ```
-תוצאה צפויה: `Ran 43 tests ... OK`
+תוצאה צפויה: `Ran 45 tests ... OK`
 
 ## מה נאכף אוטומטית (Hard Rules, config/rules_config.py)
 | כלל | ברירת מחדל | הערה |
