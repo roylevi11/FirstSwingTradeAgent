@@ -112,6 +112,39 @@ RUN_FINVIZ_SCREEN_TOOL = {
     },
 }
 
+RUN_STOCKTWITS_SENTIMENT_TOOL = {
+    "name": "fetch_stocktwits_sentiment",
+    "description": (
+        "שולף סנטימנט קהילתי חי (Bullish/Bearish) עבור מניה מ-StockTwits "
+        "(DREAM-13). שימושי כאינדיקציה תומכת נוספת, לא כתחליף לחוקי הברזל. "
+        "אם אין הודעות מתויגות, bullish_ratio יחזור None - אין לפרש None כ-0.5."
+    ),
+    "input_schema": {
+        "type": "object",
+        "properties": {"ticker": {"type": "string"}},
+        "required": ["ticker"],
+    },
+}
+
+FETCH_SEC_FILINGS_TOOL = {
+    "name": "fetch_sec_filings",
+    "description": (
+        "שולף רשימת הדוחות האחרונים (10-K/10-Q/8-K כברירת מחדל) שהוגשו ל-SEC "
+        "עבור מניה, ישירות מ-EDGAR הרשמי (לא BamSEC - זה מוצר בתשלום שאין "
+        "לנו גישה אליו). מחזיר מטא-דאטה וקישור למסמך המקורי, לא טקסט מלא. "
+        "אם המשתמש מבקש 'ניתוח בשפה פשוטה' של דוח - סכם אתה, הסוכן, את "
+        "התוכן לפי הקישור, בעברית פשוטה, במקום להעביר את זה הלאה כמות שהוא."
+    ),
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "ticker": {"type": "string"},
+            "limit": {"type": "integer", "description": "מספר דוחות מקסימלי, ברירת מחדל 5"},
+        },
+        "required": ["ticker"],
+    },
+}
+
 FIND_SIMILAR_STOCKS_TOOL = {
     "name": "find_similar_stocks",
     "description": (
@@ -192,6 +225,8 @@ ALL_TOOLS = [
     ANALYZE_INDICATORS_TOOL,
     ANALYZE_MULTI_TIMEFRAME_TOOL,
     RUN_FINVIZ_SCREEN_TOOL,
+    RUN_STOCKTWITS_SENTIMENT_TOOL,
+    FETCH_SEC_FILINGS_TOOL,
     FIND_SIMILAR_STOCKS_TOOL,
     EVALUATE_TRADE_TOOL,
     WEB_SEARCH_TOOL,

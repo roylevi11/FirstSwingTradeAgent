@@ -82,7 +82,7 @@ python main.py NVDA
 ```bash
 python3 -m unittest discover -s tests -v
 ```
-תוצאה צפויה: `Ran 54 tests ... OK`
+תוצאה צפויה: `Ran 59 tests ... OK`
 
 ## מה נאכף אוטומטית (Hard Rules, config/rules_config.py)
 | כלל | ברירת מחדל | הערה |
@@ -97,10 +97,13 @@ Phase A ממש חלק מהתשתית שכל שאר החלומות ייבנו ע�
 - **DREAM-01** (נתונים חיים) — yfinance מחליף CSV סטטי; ניתוח רב-טווחי (5m עד 1D) פעיל; עדיין לא Tick-by-Tick אמיתי בתשלום.
 - **תמיכה/התנגדות/תבנית טכנית חיות** — `analyze_multi_timeframe` הוא כעת מקור האמת לכל עסקה, לא תיוג ידני ב-CSV (ראו `tools/multi_timeframe.py`).
 - **DREAM-12** (סריקת Finviz) — `tools/finviz_screener.py`, עוטף את הספרייה `finvizfinance`. **לא נבדק עם רשת אמיתית עדיין** - רק לוגיקת ההמרה שלנו.
+- **DREAM-13** (סנטימנט StockTwits) — `tools/stocktwits_sentiment.py`, API ציבורי רשמי ללא מפתח. **לא נבדק עם רשת אמיתית עדיין**.
+- **"BamSEC"** — הוחלף בפועל ב-**SEC EDGAR הרשמי והחינמי** (`tools/sec_filings.py`) — BamSEC הוא מוצר בתשלום עם התחברות, אין לנו גישה. יש להחליף את `SEC_USER_AGENT` בקובץ לפרטים אמיתיים לפני הרצה (SEC חוסם בלי זה).
+- **DREAM-09** (Market Momentum Radar) — **הוחלט לא לבנות אינטגרציה אוטומטית**: האתר מרונדר ב-JS (כמו TradingView), ו-robots.txt חוסם גישה אוטומטית במפורש. מחכה לטקסט Methodology/How It Works שהמשתמש ימצא ידנית, כדי לבנות ציון מורכב בהשראת העקרונות (לא חיקוי ישיר).
 - **DREAM-11** (P/E ושווי שוק) — הנתונים נשלפים בפועל (`fetch_market_data`), אך לפי החלטה מפורשת עדיין **לא אוכפים** כחוק ברזל - מידע בלבד כרגע.
 - תשתית ל-**REQ-04 / Audit Log** — כל תזכיר (מאושר/נדחה) נשמר אוטומטית ל-`data/audit_log.csv`.
 
-עדיין לא ממומש (מתוכנן לפאזות הבאות): DREAM-01 המלא (Tick-by-Tick בתשלום), DREAM-09 (Market Momentum Radar - ממתין לפרטי גישה מהמשתמש),
+עדיין לא ממומש (מתוכנן לפאזות הבאות): DREAM-01 המלא (Tick-by-Tick בתשלום),
 DREAM-08/09/10 (RAG ומקורות חיצוניים, Phase E), DREAM-05/06/07
 (דשבורד, בונה תבניות, טלגרם, Phase F).
 

@@ -26,6 +26,8 @@ from tools.patterns import detect_patterns
 from tools.indicators import analyze_indicators
 from tools.multi_timeframe import analyze_multi_timeframe
 from tools.finviz_screener import run_momentum_screen
+from tools.stocktwits_sentiment import fetch_symbol_sentiment
+from tools.sec_filings import fetch_recent_filings
 from tools.risk import calc_position_size
 from tools.rules_engine import evaluate_hard_rules
 from tools.orders import create_draft_order, format_memo_hebrew
@@ -76,6 +78,13 @@ def _dispatch_tool(tool_name: str, tool_input: dict) -> dict:
     if tool_name == "run_finviz_screen":
         results = run_momentum_screen(tool_input.get("filters"), tool_input.get("limit", 20))
         return {"stocks": [r.__dict__ for r in results]}
+
+    if tool_name == "fetch_stocktwits_sentiment":
+        return fetch_symbol_sentiment(tool_input["ticker"])
+
+    if tool_name == "fetch_sec_filings":
+        filings = fetch_recent_filings(tool_input["ticker"], limit=tool_input.get("limit", 5))
+        return {"filings": filings}
 
     if tool_name == "evaluate_trade":
         return _dispatch_evaluate_trade(tool_input)
