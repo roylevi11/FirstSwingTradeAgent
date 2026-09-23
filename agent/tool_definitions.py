@@ -23,9 +23,9 @@ EVALUATE_TRADE_TOOL = {
     "input_schema": {
         "type": "object",
         "properties": {
-            "ticker": {"type": "string", "description": "סימול המניה, למשל NVDA (אופציונלי - אם המשתמש נתן רק מספרים, השמט)"},
-            "company_name": {"type": "string", "description": "שם החברה (אופציונלי)"},
-            "technical_pattern": {"type": "string", "description": "התבנית הטכנית שזוהתה, למשל Inside Bar Consolidation (אופציונלי)"},
+            "ticker": {"type": "string", "description": "סימול המניה, למשל NVDA"},
+            "company_name": {"type": "string"},
+            "technical_pattern": {"type": "string", "description": "התבנית הטכנית שזוהתה, למשל Inside Bar Consolidation"},
             "entry_price": {"type": "number"},
             "stop_loss": {"type": "number"},
             "target_price": {"type": "number"},
@@ -33,26 +33,7 @@ EVALUATE_TRADE_TOOL = {
             "account_size": {"type": "number", "description": "גודל התיק בדולרים, לחישוב גודל פוזיציה (אופציונלי)"},
             "rationale": {"type": "string", "description": "נימוק קצר להמלצה, מבוסס הנתונים שנאספו"},
         },
-        "required": ["entry_price", "stop_loss", "target_price", "days_to_earnings"],
-    },
-}
-
-CALC_POSITION_SIZE_TOOL = {
-    "name": "calc_position_size",
-    "description": (
-        "מחשב גודל פוזיציה (כמות מניות וסכום סיכון) לפי גודל התיק, אחוז הסיכון, "
-        "מחיר כניסה וסטופ. אינו דורש טיקר, יעד או ימים לדוחות. חובה להשתמש בו "
-        "לכל שאלה על גודל פוזיציה - אסור לחשב זאת בראש."
-    ),
-    "input_schema": {
-        "type": "object",
-        "properties": {
-            "account_size": {"type": "number"},
-            "risk_percent": {"type": "number", "description": "אחוז הסיכון מהתיק, למשל 1.5"},
-            "entry_price": {"type": "number"},
-            "stop_loss": {"type": "number"},
-        },
-        "required": ["account_size", "risk_percent", "entry_price", "stop_loss"],
+        "required": ["ticker", "company_name", "technical_pattern", "entry_price", "stop_loss", "target_price", "days_to_earnings"],
     },
 }
 
@@ -82,11 +63,9 @@ FETCH_WATCHLIST_TOOL = {
         "שולף ידע אנליסט מתויג-ידנית עבור מניה מרשימת המעקב המקומית: רמות "
         "תמיכה/התנגדות ותבנית טכנית שזוהתה. השתמש בכלי הזה, ולא בניחוש, "
         "בכל פעם שנדרשת רמת תמיכה/התנגדות או תבנית טכנית - אלו נתונים "
-        "מתויגים ידנית ולא מגיעים מ-API של מחירים, ולכן הם רק הפניה היסטורית: "
-        "לקביעת עסקה יש להשתמש בתמיכה/התנגדות/תבנית החיות של analyze_multi_timeframe. "
-        "שדה current_price כאן הוא המחיר האמיתי החי (לא מהקובץ); levels_status "
-        "אומר אם הרמות המתויגות עדיין סביב המחיר הנוכחי (OK) או התיישנו "
-        "(PRICE_ABOVE_RESISTANCE / PRICE_BELOW_SUPPORT)."
+        "מתויגים ידנית ולא מגיעים מ-API של מחירים. שים לב: שדה current_price "
+        "שמוחזר כאן הוא ערך היסטורי מזמן התיוג בלבד - לעולם אל תשתמש בו "
+        "כמחיר כניסה; לכך יש להפעיל תמיד את fetch_market_data."
     ),
     "input_schema": {
         "type": "object",
@@ -166,15 +145,24 @@ FETCH_SEC_FILINGS_TOOL = {
     },
 }
 
+FETCH_STRATEGY_NOTES_TOOL = {
+    "name": "fetch_strategy_notes",
+    "description": (
+        "שולף הערות מתודולוגיה/אסטרטגיה מתומצתות ממנטורים (כרגע: Assaf_Marciano), "
+        "שחולצו מקורס מוקלט. זהו הקשר איכותני תומך בלבד (עקרונות ניהול סיכונים, "
+        "מנטליות, קריטריונים כלליים) - לעולם לא מקור אמת למספר או לחוק ברזל. "
+        "evaluate_trade נשאר הסמכות הבלעדית להחלטה. הפעל רק כשהמשתמש שואל על "
+        "גישה/פילוסופיה/מתודולוגיה, לא כשמבקש נתון מספרי."
+    ),
+    "input_schema": {"type": "object", "properties": {}, "required": []},
+}
+
 FIND_SIMILAR_STOCKS_TOOL = {
     "name": "find_similar_stocks",
     "description": (
-        "שכבת הדמיון החיה: מדרגת את מניות רשימת המעקב לפי דמיון למניה נתונה, על נתונים "
-        "חיים בלבד (7 טווחי זמן 5m..1W): מומנטום, מגמה, RSI, תנודתיות, יחס סיכון/סיכוי, "
-        "סקטור, דוחות, קורלציית תשואות היסטורית, ותבנית טכנית + הטווחים שבהם היא מופיעה "
-        "(None = אין תבנית, ערך לגיטימי). הדירוג הסופי (rank_score) משלב את הדמיון עם ה-Edge "
-        "ההיסטורי של תבנית המועמדת (בדיקת עבר). השתמש בו כשעסקה נפסלת כדי למצוא חלופה - "
-        "אל תמליץ על מניה אחרת בלי להפעיל אותו קודם, ואמת אותה בסוף עם analyze_multi_timeframe ו-evaluate_trade."
+        "מפעיל את שכבת הדמיון על רשימת המעקב, ומחזיר את המניות הדומות ביותר "
+        "למניה נתונה (Cosine או Jaccard). השתמש בכלי הזה כשעסקה נפסלת "
+        "כדי למצוא חלופה - אל תמליץ על מניה אחרת בלי להפעיל אותו קודם."
     ),
     "input_schema": {
         "type": "object",
@@ -182,7 +170,7 @@ FIND_SIMILAR_STOCKS_TOOL = {
             "ticker": {"type": "string", "description": "סימול המניה הבסיסית (זו שנפסלה)"},
             "min_risk_reward": {
                 "type": "number",
-                "description": "אם צוין, יוחזרו רק מועמדות שיחס הסיכון/סיכוי החי שלהן (תמיכה/התנגדות יומיות) לפחות כזה; best_valid_alternative = הראשונה",
+                "description": "אם צוין, הכלי יחזיר את המניה הדומה ביותר שגם עומדת ביחס סיכון/סיכוי הזה או מעליו",
             },
         },
         "required": ["ticker"],
@@ -237,16 +225,6 @@ ANALYZE_INDICATORS_TOOL = {
     },
 }
 
-FETCH_FINVIZ_TOOL = {
-    "name": "fetch_finviz",
-    "description": "Finviz (חינמי): כותרות חדשות אחרונות + snapshot (יעד אנליסטים, Recom, RSI, Short Float, מועד דוחות, SMA). מקור חדשות מהיר וזול - עדיף על web_search לחדשות שוטפות על מניה.",
-    "input_schema": {
-        "type": "object",
-        "properties": {"ticker": {"type": "string"}, "limit": {"type": "integer", "description": "מספר כותרות, ברירת מחדל 8"}},
-        "required": ["ticker"],
-    },
-}
-
 # הכלי המובנה של Claude API - המקביל ל-Grounding with Google Search
 WEB_SEARCH_TOOL = {"type": "web_search_20260209", "name": "web_search"}
 
@@ -261,9 +239,8 @@ ALL_TOOLS = [
     RUN_FINVIZ_SCREEN_TOOL,
     RUN_STOCKTWITS_SENTIMENT_TOOL,
     FETCH_SEC_FILINGS_TOOL,
+    FETCH_STRATEGY_NOTES_TOOL,
     FIND_SIMILAR_STOCKS_TOOL,
     EVALUATE_TRADE_TOOL,
-    CALC_POSITION_SIZE_TOOL,
-    FETCH_FINVIZ_TOOL,
     WEB_SEARCH_TOOL,
 ]

@@ -19,8 +19,8 @@ BamSEC עצמו מבוסס מלכתחילה. אנחנו שולפים את הדו
 הרשמי שנבדק דרך חיפוש.
 """
 
-# SEC דורשת User-Agent עם שם ואימייל אמיתיים (אחרת 403). הפרטים אושרו לשימוש ע"י המשתמש.
-SEC_USER_AGENT = "SwingCopilot research-project (Roy Levi, roylevi11@gmail.com)"
+# TODO: החלף בפרטים האמיתיים שלך - SEC חוסם בקשות בלי User-Agent תקין
+SEC_USER_AGENT = "SwingCopilot research-project (your-email@example.com)"
 
 RELEVANT_FORMS = ("10-K", "10-Q", "8-K")
 

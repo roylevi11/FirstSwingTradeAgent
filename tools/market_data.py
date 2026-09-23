@@ -13,16 +13,12 @@ market_data.py
 כך, ולעולם לא ממציאים מספר.
 """
 
-import time
 from dataclasses import dataclass
 from datetime import datetime
 
 # מרווחי זמן שנחשבים "תוך-יומיים" אצל yfinance ומוגבלים בחלון היסטוריה קצר.
 # "1d"/"1wk"/"1mo" אינם ברשימה - עליהם מותר history ארוך בהרבה (שנים).
 INTRADAY_INTERVALS = {"1m", "2m", "5m", "15m", "30m", "60m", "90m", "1h"}
-
-_PRICE_CACHE: dict[str, tuple[float, float | None]] = {}
-_PRICE_TTL_SECONDS = 60
 
 
 @dataclass
@@ -79,35 +75,6 @@ def fetch_market_data(ticker: str) -> MarketSnapshot:
         fetched_at=datetime.utcnow().isoformat(),
         missing_fields=missing,
     )
-
-
-def fetch_live_price(ticker: str) -> float | None:
-    """
-    המחיר האמיתי העדכני ביותר מ-yfinance (חינמי, ללא מפתח). זהו מקור המחיר
-    היחיד שהמערכת משתמשת בו - המחיר בקובץ watchlist.csv אינו נקרא יותר.
-    מטמון קצר (60 שניות) כדי לא לפגוע בקצב כשסורקים כמה מניות ברצף.
-    מחזיר None אם המחיר לא זמין - אף פעם לא ממציאים ערך.
-    """
-    key = ticker.upper()
-    cached = _PRICE_CACHE.get(key)
-    if cached and time.time() - cached[0] < _PRICE_TTL_SECONDS:
-        return cached[1]
-
-    price = None
-    try:
-        import yfinance as yf  # ייבוא מושהה, כמו בשאר הקובץ
-
-        t = yf.Ticker(key)
-        price = t.fast_info.get("last_price") or t.fast_info.get("lastPrice")
-        if price is None:
-            info = t.info or {}
-            price = info.get("currentPrice") or info.get("regularMarketPrice")
-    except Exception:
-        price = None
-
-    price = round(float(price), 2) if price else None
-    _PRICE_CACHE[key] = (time.time(), price)
-    return price
 
 
 def fetch_recent_ohlc(ticker: str, days: int = 10, interval: str = "1d") -> list[dict]:

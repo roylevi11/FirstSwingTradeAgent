@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: swing-copilot-bot
+    runtime: python
+    buildCommand: "pip install -r server/requirements.txt"
+    startCommand: "cd server && gunicorn app:app"
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false
+    # הערה: השרת החינמי ב-Render "נרדם" אחרי חוסר פעילות ומתעורר בבקשה
+    # הבאה (עיכוב של כמה שניות) - זה תקין ל-MVP, לא באג.
+    # הערה 2: הדיסק ברמה החינמית הוא ephemeral - קובץ trades.db יתאפס
+    # בכל דיפלוי מחדש. לשמירה קבועה, שדרוג ל-Persistent Disk בעתיד.

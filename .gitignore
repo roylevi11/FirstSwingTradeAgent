@@ -2,4 +2,6 @@
 __pycache__/
 *.pyc
 data/audit_log.csv
+data/knowledge/
+server/trades.db
 .venv/

@@ -56,7 +56,7 @@ def _row_to_screened_stock(row: dict) -> ScreenedStock:
         company_name=row.get("Company") or None,
         sector=row.get("Sector") or None,
         price=_to_float(row.get("Price")),
-        change_pct=_to_float(str(row.get("Change %", row.get("Change", ""))).replace("%", "")),
+        change_pct=_to_float(str(row.get("Change", "")).replace("%", "")),
         volume=_to_int(row.get("Volume")),
     )
 

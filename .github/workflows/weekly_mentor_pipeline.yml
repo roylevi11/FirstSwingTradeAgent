@@ -1,0 +1,30 @@
+name: Weekly Mentor Pipeline
+
+on:
+  schedule:
+    # כל יום ראשון ב-07:00 לפי שעון ישראל (04:00 UTC, לא כולל שעון קיץ)
+    - cron: '0 4 * * 0'
+  workflow_dispatch: {}  # מאפשר הרצה ידנית בלחיצת כפתור מטאב Actions
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run mentor pipeline
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python run_mentor_pipeline.py
+      - name: Commit updated watchlist
+        run: |
+          git config user.name "Weekly Mentor Pipeline"
+          git config user.email "actions@github.com"
+          git add data/watchlist.csv
+          git diff --staged --quiet || git commit -m "Auto-update: weekly mentor pipeline"
+          git push
