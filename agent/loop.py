@@ -145,7 +145,8 @@ def run_agent(user_request: str, api_key: str | None = None) -> dict:
         steps_used += 1
         response = client.messages.create(
             model=ANALYST_MODEL,
-            max_tokens=2048,
+            max_tokens=12000,  # הועלה מ-2048 בעקבות ריצה אמיתית: תשובות מרובות-כלים
+            # (למשל NVDA שנדחה + חיפוש חלופה + תזכיר מלא) נחתכו בתקרה נמוכה יותר.
             system=SYSTEM_PROMPT,
             tools=ALL_TOOLS,
             messages=messages,
