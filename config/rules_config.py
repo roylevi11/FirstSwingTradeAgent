@@ -32,7 +32,7 @@ MAX_RISK_PERCENT_PER_TRADE: float = 1.5  # אחוזים
 MIN_MARKET_CAP_USD: float = 2_000_000_000  # 2 מיליארד דולר
 
 # --- הגדרות לולאת הסוכן ---
-MAX_AGENT_STEPS: int = 5  # מספר צעדים מקסימלי בלולאת Observe-Think-Act (לפי עבודה 1)
+MAX_AGENT_STEPS: int = 10  # מספר צעדים מקסימלי בלולאת Observe-Think-Act (לפי עבודה 1)
 
 # --- מודלים (Claude API) ---
 # מודל "זול ומהיר" לסריקה ראשונית של הרבה מניות (REQ-01, משפך עלויות)

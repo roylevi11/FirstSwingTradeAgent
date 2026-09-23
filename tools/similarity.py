@@ -34,6 +34,9 @@ def _entry_risk_reward(entry: WatchlistEntry) -> float | None:
     """מחשב R:R לפי הנתונים בקובץ, אם קיימים כל שלושת המחירים."""
     if entry.current_price is None or entry.key_support is None or entry.key_resistance is None:
         return None
+    # מחיר מחוץ לטווח [תמיכה, התנגדות] = הרמות המתויגות התיישנו; לא מחשבים R:R מטעה
+    if not (entry.key_support < entry.current_price < entry.key_resistance):
+        return None
     try:
         return calc_risk_reward(entry.current_price, entry.key_support, entry.key_resistance).ratio
     except ValueError:
@@ -125,7 +128,7 @@ def find_similar_stocks(
     entries ניתן להזרקה (לבדיקות); ברירת מחדל: כל data/watchlist.csv.
     """
     if entries is None:
-        entries = load_all_watchlist_entries()
+        entries = load_all_watchlist_entries(live_prices=True)
 
     base = next((e for e in entries if e.ticker.upper() == base_ticker.upper()), None)
     if base is None:

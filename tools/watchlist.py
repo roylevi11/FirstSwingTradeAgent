@@ -31,6 +31,8 @@ class WatchlistEntry:
     days_to_earnings: int | None = None
     technical_pattern: str | None = None
     source_tag: str | None = None
+    price_source: str | None = None  # 'live' = מחיר אמיתי מ-yfinance; None = לא הועשר
+    levels_status: str | None = None  # OK / PRICE_ABOVE_RESISTANCE / PRICE_BELOW_SUPPORT
 
 
 def _row_to_entry(row: dict) -> WatchlistEntry:
@@ -60,7 +62,27 @@ def _row_to_entry(row: dict) -> WatchlistEntry:
     )
 
 
-def fetch_watchlist_entry(ticker: str) -> WatchlistEntry:
+def _apply_live_price(entry: WatchlistEntry) -> WatchlistEntry:
+    """
+    מחליף את המחיר שבקובץ (שהיה רק כדי להניע את הפרויקט) במחיר האמיתי,
+    ובודק אם רמות התמיכה/התנגדות המתויגות עדיין רלוונטיות אליו.
+    אם המחיר החי לא זמין - current_price נשאר None (לא חוזרים למחיר הקובץ).
+    """
+    from tools.market_data import fetch_live_price
+
+    entry.current_price = fetch_live_price(entry.ticker)
+    entry.price_source = "live" if entry.current_price is not None else "unavailable"
+    if entry.current_price is not None and entry.key_support is not None and entry.key_resistance is not None:
+        if entry.current_price > entry.key_resistance:
+            entry.levels_status = "PRICE_ABOVE_RESISTANCE"
+        elif entry.current_price < entry.key_support:
+            entry.levels_status = "PRICE_BELOW_SUPPORT"
+        else:
+            entry.levels_status = "OK"
+    return entry
+
+
+def fetch_watchlist_entry(ticker: str, live_price: bool = True) -> WatchlistEntry:
     """
     שולף את הידע המתויג-ידנית עבור מניה מתוך data/watchlist.csv.
     אם המניה לא ברשימה - found=False, ואין שום ניחוש של ערכים.
@@ -73,12 +95,13 @@ def fetch_watchlist_entry(ticker: str) -> WatchlistEntry:
         reader = csv.DictReader(f)
         for row in reader:
             if row["Ticker"].upper() == ticker:
-                return _row_to_entry(row)
+                entry = _row_to_entry(row)
+                return _apply_live_price(entry) if live_price else entry
 
     return WatchlistEntry(ticker=ticker, found=False)
 
 
-def load_all_watchlist_entries() -> list[WatchlistEntry]:
+def load_all_watchlist_entries(live_prices: bool = False) -> list[WatchlistEntry]:
     """
     טוען את כל השורות מ-watchlist.csv כרשימת WatchlistEntry.
     זהו הבסיס לשכבת הדמיון (tools/similarity.py) - כדי למצוא את המניה
@@ -91,5 +114,6 @@ def load_all_watchlist_entries() -> list[WatchlistEntry]:
     with open(WATCHLIST_PATH, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            entries.append(_row_to_entry(row))
+            entry = _row_to_entry(row)
+            entries.append(_apply_live_price(entry) if live_prices else entry)
     return entries

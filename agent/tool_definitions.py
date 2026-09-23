@@ -23,9 +23,9 @@ EVALUATE_TRADE_TOOL = {
     "input_schema": {
         "type": "object",
         "properties": {
-            "ticker": {"type": "string", "description": "סימול המניה, למשל NVDA"},
-            "company_name": {"type": "string"},
-            "technical_pattern": {"type": "string", "description": "התבנית הטכנית שזוהתה, למשל Inside Bar Consolidation"},
+            "ticker": {"type": "string", "description": "סימול המניה, למשל NVDA (אופציונלי - אם המשתמש נתן רק מספרים, השמט)"},
+            "company_name": {"type": "string", "description": "שם החברה (אופציונלי)"},
+            "technical_pattern": {"type": "string", "description": "התבנית הטכנית שזוהתה, למשל Inside Bar Consolidation (אופציונלי)"},
             "entry_price": {"type": "number"},
             "stop_loss": {"type": "number"},
             "target_price": {"type": "number"},
@@ -33,7 +33,26 @@ EVALUATE_TRADE_TOOL = {
             "account_size": {"type": "number", "description": "גודל התיק בדולרים, לחישוב גודל פוזיציה (אופציונלי)"},
             "rationale": {"type": "string", "description": "נימוק קצר להמלצה, מבוסס הנתונים שנאספו"},
         },
-        "required": ["ticker", "company_name", "technical_pattern", "entry_price", "stop_loss", "target_price", "days_to_earnings"],
+        "required": ["entry_price", "stop_loss", "target_price", "days_to_earnings"],
+    },
+}
+
+CALC_POSITION_SIZE_TOOL = {
+    "name": "calc_position_size",
+    "description": (
+        "מחשב גודל פוזיציה (כמות מניות וסכום סיכון) לפי גודל התיק, אחוז הסיכון, "
+        "מחיר כניסה וסטופ. אינו דורש טיקר, יעד או ימים לדוחות. חובה להשתמש בו "
+        "לכל שאלה על גודל פוזיציה - אסור לחשב זאת בראש."
+    ),
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "account_size": {"type": "number"},
+            "risk_percent": {"type": "number", "description": "אחוז הסיכון מהתיק, למשל 1.5"},
+            "entry_price": {"type": "number"},
+            "stop_loss": {"type": "number"},
+        },
+        "required": ["account_size", "risk_percent", "entry_price", "stop_loss"],
     },
 }
 
@@ -63,7 +82,10 @@ FETCH_WATCHLIST_TOOL = {
         "שולף ידע אנליסט מתויג-ידנית עבור מניה מרשימת המעקב המקומית: רמות "
         "תמיכה/התנגדות ותבנית טכנית שזוהתה. השתמש בכלי הזה, ולא בניחוש, "
         "בכל פעם שנדרשת רמת תמיכה/התנגדות או תבנית טכנית - אלו נתונים "
-        "מתויגים ידנית ולא מגיעים מ-API של מחירים."
+        "מתויגים ידנית ולא מגיעים מ-API של מחירים. שדה current_price כאן הוא "
+        "המחיר האמיתי החי (לא מהקובץ); levels_status אומר אם הרמות עדיין "
+        "רלוונטיות למחיר הנוכחי (OK) או התיישנו (PRICE_ABOVE_RESISTANCE / "
+        "PRICE_BELOW_SUPPORT)."
     ),
     "input_schema": {
         "type": "object",
@@ -140,6 +162,48 @@ ANALYZE_INDICATORS_TOOL = {
     },
 }
 
+FETCH_FINVIZ_TOOL = {
+    "name": "fetch_finviz",
+    "description": "Finviz (חינמי): כותרות חדשות אחרונות + snapshot (יעד אנליסטים, Recom, RSI, Short Float, מועד דוחות, SMA). מקור חדשות מהיר וזול - עדיף על web_search לחדשות שוטפות על מניה.",
+    "input_schema": {
+        "type": "object",
+        "properties": {"ticker": {"type": "string"}, "limit": {"type": "integer", "description": "מספר כותרות, ברירת מחדל 8"}},
+        "required": ["ticker"],
+    },
+}
+
+FETCH_STOCKTWITS_TOOL = {
+    "name": "fetch_stocktwits_sentiment",
+    "description": "StockTwits (חינמי): סנטימנט קהילתי Bullish/Bearish מ-30 ההודעות האחרונות על המניה + הודעות אחרונות. רועש - אינדיקציה משלימה בלבד.",
+    "input_schema": {"type": "object", "properties": {"ticker": {"type": "string"}}, "required": ["ticker"]},
+}
+
+FETCH_TRADINGVIEW_TOOL = {
+    "name": "fetch_tradingview_technicals",
+    "description": "TradingView (חינמי): המלצה טכנית מצטברת (Strong Buy...Strong Sell), RSI, SMA20/50/200, ATR, ADX, ביצועים. משלים את analyze_technical_indicators.",
+    "input_schema": {"type": "object", "properties": {"ticker": {"type": "string"}}, "required": ["ticker"]},
+}
+
+FETCH_MOMENTUM_SCREENER_TOOL = {
+    "name": "fetch_momentum_screener",
+    "description": (
+        "Market Momentum Radar (חינמי): ציוני MMR (איכות עסק), Chart Score, Entry Readiness "
+        "ו-Bottoming. עם ticker - הדירוג של מניה אחת (איטי, כ-7 שניות בפעם הראשונה). "
+        "בלי ticker - המניות המובילות לפי פילטרים (למשל min_entry_readiness=8) לגילוי רעיונות. "
+        "הציונים הם של MMR, לא ניתוח שלנו - ציין זאת בתשובה."
+    ),
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "ticker": {"type": "string"},
+            "min_entry_readiness": {"type": "number"},
+            "min_chart_score": {"type": "number"},
+            "min_mmr_score": {"type": "number"},
+            "limit": {"type": "integer", "description": "עד 50, ברירת מחדל 10 (רק בלי ticker)"},
+        },
+    },
+}
+
 # הכלי המובנה של Claude API - המקביל ל-Grounding with Google Search
 WEB_SEARCH_TOOL = {"type": "web_search_20260209", "name": "web_search"}
 
@@ -152,5 +216,10 @@ ALL_TOOLS = [
     ANALYZE_INDICATORS_TOOL,
     FIND_SIMILAR_STOCKS_TOOL,
     EVALUATE_TRADE_TOOL,
+    CALC_POSITION_SIZE_TOOL,
+    FETCH_FINVIZ_TOOL,
+    FETCH_STOCKTWITS_TOOL,
+    FETCH_TRADINGVIEW_TOOL,
+    FETCH_MOMENTUM_SCREENER_TOOL,
     WEB_SEARCH_TOOL,
 ]
