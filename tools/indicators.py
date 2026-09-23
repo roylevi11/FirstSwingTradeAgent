@@ -25,16 +25,54 @@ def calc_sma(candles: list[Candle], period: int) -> float | None:
     return round(sum(closes[-period:]) / period, 4)
 
 
+def _ema_series(prices: list[float], period: int) -> list[float]:
+    """מחזיר את כל סדרת ה-EMA (לא רק הערך האחרון) - נדרש לחישוב MACD,
+    שהוא בעצמו EMA שמופעל על הפרש בין שני EMA אחרים."""
+    if len(prices) < period:
+        return []
+    multiplier = 2 / (period + 1)
+    ema = sum(prices[:period]) / period  # זרע ראשוני: SMA
+    series = [ema]
+    for price in prices[period:]:
+        ema = (price - ema) * multiplier + ema
+        series.append(ema)
+    return series
+
+
 def calc_ema(candles: list[Candle], period: int) -> float | None:
     """ממוצע נע מעריכי (Exponential Moving Average) - נותן משקל גבוה יותר לנרות האחרונים."""
+    series = _ema_series(_closes(candles), period)
+    return round(series[-1], 4) if series else None
+
+
+def calc_macd(candles: list[Candle], fast: int = 12, slow: int = 26, signal: int = 9) -> dict | None:
+    """
+    MACD (Moving Average Convergence Divergence) - אינדיקטור מגמה ומומנטום.
+    macd = EMA(fast) - EMA(slow); signal = EMA(signal) של קו ה-MACD עצמו;
+    histogram = macd - signal. חציית macd מעל signal נחשבת אות שורי,
+    מתחתיו אות דובי. הפרמטרים הסטנדרטיים (12/26/9) לפי המוסכמה המקובלת.
+    """
     closes = _closes(candles)
-    if len(closes) < period:
+    if len(closes) < slow + signal:
         return None
-    multiplier = 2 / (period + 1)
-    ema = sum(closes[:period]) / period  # זרע ראשוני: SMA
-    for price in closes[period:]:
-        ema = (price - ema) * multiplier + ema
-    return round(ema, 4)
+
+    fast_series = _ema_series(closes, fast)
+    slow_series = _ema_series(closes, slow)
+    # מיישרים את שתי הסדרות כך שיתייחסו לאותם ימים בדיוק (fast מתחיל מוקדם יותר)
+    offset = len(fast_series) - len(slow_series)
+    macd_line = [f - s for f, s in zip(fast_series[offset:], slow_series)]
+
+    if len(macd_line) < signal:
+        return None
+    signal_series = _ema_series(macd_line, signal)
+
+    macd_value = macd_line[-1]
+    signal_value = signal_series[-1]
+    return {
+        "macd": round(macd_value, 4),
+        "signal": round(signal_value, 4),
+        "histogram": round(macd_value - signal_value, 4),
+    }
 
 
 def calc_rsi(candles: list[Candle], period: int = 14) -> float | None:
@@ -105,9 +143,12 @@ def analyze_indicators(candles: list[Candle]) -> dict:
     return {
         "sma_20": calc_sma(candles, 20),
         "sma_50": calc_sma(candles, 50),
-        "ema_20": calc_ema(candles, 20),
+        "sma_100": calc_sma(candles, 100),
+        "sma_200": calc_sma(candles, 200),
+        "ema_10": calc_ema(candles, 10),
         "rsi_14": calc_rsi(candles, 14),
         "atr_14": calc_atr(candles, 14),
+        "macd": calc_macd(candles),
         "relative_volume_20d": calc_relative_volume(candles, 20),
         "candles_available": len(candles),
     }

@@ -24,11 +24,16 @@ TIMEFRAME_CONFIGS = [
     {"label": "5m", "yf_interval": "5m", "days": 5, "resample_from_60m": None},
     {"label": "15m", "yf_interval": "15m", "days": 10, "resample_from_60m": None},
     {"label": "30m", "yf_interval": "30m", "days": 20, "resample_from_60m": None},
-    {"label": "1h", "yf_interval": "60m", "days": 30, "resample_from_60m": None},
-    {"label": "4h", "yf_interval": "60m", "days": 55, "resample_from_60m": 4},
-    {"label": "1D", "yf_interval": "1d", "days": 250, "resample_from_60m": None},
-    {"label": "1W", "yf_interval": "1wk", "days": 730, "resample_from_60m": None},
+    {"label": "1h", "yf_interval": "60m", "days": 59, "resample_from_60m": None},
+    {"label": "4h", "yf_interval": "60m", "days": 59, "resample_from_60m": 4},
+    {"label": "1D", "yf_interval": "1d", "days": 300, "resample_from_60m": None},
+    {"label": "1W", "yf_interval": "1wk", "days": 1460, "resample_from_60m": None},
 ]
+# הערת מגבלה חשובה: SMA200 דורש 200 נרות. ב-yfinance החינמי, מרווחים
+# תוך-יומיים (כולל 4h, שנבנה מ-60m) מוגבלים ל-59 ימי היסטוריה - גם עם
+# ה-days המקסימלי כאן, יתכן שב-4h לא יהיו מספיק נרות ל-SMA200 (יחזיר
+# None). זו מגבלת נתונים אמיתית, לא באג - לפתרון מלא נדרש ספק בתשלום
+# עם היסטוריה תוך-יומית ארוכה יותר (DREAM-01 המלא).
 
 
 def resample_candles(candles: list[Candle], factor: int) -> list[Candle]:

@@ -79,7 +79,7 @@ ANALYZE_MULTI_TIMEFRAME_TOOL = {
     "description": (
         "מריץ ניתוח טכני חי ומלא על פני 7 טווחי זמן (5m, 15m, 30m, 1h, 4h, 1D, 1W) - "
         "עבור כל טווח: תמיכה/התנגדות דינמיות (Donchian, מחושבות מנתונים חיים, "
-        "לא תיוג ידני), תבניות שזוהו, ואינדיקטורים (RSI/ATR/SMA/נפח). "
+        "לא תיוג ידני), תבניות שזוהו, ואינדיקטורים (RSI/ATR/SMA/EMA/MACD/נפח). "
         "זהו מקור האמת היחיד לתמיכה/התנגדות/תבנית טכנית כעת - "
         "אין להסתמך על Key_Support/Key_Resistance/Technical_Pattern "
         "המתויגים ידנית ב-fetch_watchlist_entry עבור קביעת עסקה."
@@ -118,7 +118,7 @@ FETCH_OHLC_TOOL = {
         "type": "object",
         "properties": {
             "ticker": {"type": "string"},
-            "days": {"type": "integer", "description": "כמות ימים לאחור, ברירת מחדל 10 (עבור אינדיקטורים כמו RSI/ATR/SMA50 צריך לפחות 55-60 ימים)"},
+            "days": {"type": "integer", "description": "כמות ימים לאחור, ברירת מחדל 10 (לאינדיקטורים ארוכי-טווח כמו SMA200 צריך 200+ נרות)"},
             "interval": {"type": "string", "description": "רזולוציית הנרות: '1d' (ברירת מחדל) או תוך-יומי כמו '5m'/'15m'/'1h'"},
         },
         "required": ["ticker"],
@@ -146,7 +146,7 @@ DETECT_PATTERNS_TOOL = {
 ANALYZE_INDICATORS_TOOL = {
     "name": "analyze_technical_indicators",
     "description": (
-        "מחשב אינדיקטורים כמותיים (SMA20/50, EMA20, RSI14, ATR14, נפח יחסי) מתוך "
+        "מחשב אינדיקטורים כמותיים (SMA20/50/100/200, EMA10, RSI14, ATR14, MACD 12/26/9, נפח יחסי) מתוך "
         "נתוני OHLC. יש להעביר את תוצאת fetch_recent_ohlc כקלט (candles). "
         "שימושי לחיזוק/החלשת הביטחון בתזכיר, לא כתחליף לחוקי הברזל של evaluate_trade."
     ),
