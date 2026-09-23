@@ -82,10 +82,28 @@ FETCH_WATCHLIST_TOOL = {
         "שולף ידע אנליסט מתויג-ידנית עבור מניה מרשימת המעקב המקומית: רמות "
         "תמיכה/התנגדות ותבנית טכנית שזוהתה. השתמש בכלי הזה, ולא בניחוש, "
         "בכל פעם שנדרשת רמת תמיכה/התנגדות או תבנית טכנית - אלו נתונים "
-        "מתויגים ידנית ולא מגיעים מ-API של מחירים. שדה current_price כאן הוא "
-        "המחיר האמיתי החי (לא מהקובץ); levels_status אומר אם הרמות עדיין "
-        "רלוונטיות למחיר הנוכחי (OK) או התיישנו (PRICE_ABOVE_RESISTANCE / "
-        "PRICE_BELOW_SUPPORT)."
+        "מתויגים ידנית ולא מגיעים מ-API של מחירים, ולכן הם רק הפניה היסטורית: "
+        "לקביעת עסקה יש להשתמש בתמיכה/התנגדות/תבנית החיות של analyze_multi_timeframe. "
+        "שדה current_price כאן הוא המחיר האמיתי החי (לא מהקובץ); levels_status "
+        "אומר אם הרמות המתויגות עדיין סביב המחיר הנוכחי (OK) או התיישנו "
+        "(PRICE_ABOVE_RESISTANCE / PRICE_BELOW_SUPPORT)."
+    ),
+    "input_schema": {
+        "type": "object",
+        "properties": {"ticker": {"type": "string"}},
+        "required": ["ticker"],
+    },
+}
+
+ANALYZE_MULTI_TIMEFRAME_TOOL = {
+    "name": "analyze_multi_timeframe",
+    "description": (
+        "מריץ ניתוח טכני חי ומלא על פני 7 טווחי זמן (5m, 15m, 30m, 1h, 4h, 1D, 1W) - "
+        "עבור כל טווח: תמיכה/התנגדות דינמיות (Donchian, מחושבות מנתונים חיים, "
+        "לא תיוג ידני), תבניות שזוהו, ואינדיקטורים (RSI/ATR/SMA/EMA/MACD/נפח). "
+        "זהו מקור האמת היחיד לתמיכה/התנגדות/תבנית טכנית כעת - "
+        "אין להסתמך על Key_Support/Key_Resistance/Technical_Pattern "
+        "המתויגים ידנית ב-fetch_watchlist_entry עבור קביעת עסקה."
     ),
     "input_schema": {
         "type": "object",
@@ -107,7 +125,7 @@ FIND_SIMILAR_STOCKS_TOOL = {
             "ticker": {"type": "string", "description": "סימול המניה הבסיסית (זו שנפסלה)"},
             "min_risk_reward": {
                 "type": "number",
-                "description": "אם צוין, הכלי יחזיר את המניה הדומה ביותר שגם עומדת ביחס סיכון/סיכוי הזה או מעליו",
+                "description": "לא מומלץ: R:R מחושב מרמות מתויגות שעלולות להיות מיושנות (בדרך כלל יוחזר None). העדף בלי הפרמטר, והרץ analyze_multi_timeframe על כל מועמד",
             },
         },
         "required": ["ticker"],
@@ -121,7 +139,7 @@ FETCH_OHLC_TOOL = {
         "type": "object",
         "properties": {
             "ticker": {"type": "string"},
-            "days": {"type": "integer", "description": "כמות ימים לאחור, ברירת מחדל 10 (עבור אינדיקטורים כמו RSI/ATR/SMA50 צריך לפחות 55-60 ימים)"},
+            "days": {"type": "integer", "description": "כמות ימים לאחור, ברירת מחדל 10 (לאינדיקטורים ארוכי-טווח כמו SMA200 צריך 200+ נרות)"},
             "interval": {"type": "string", "description": "רזולוציית הנרות: '1d' (ברירת מחדל) או תוך-יומי כמו '5m'/'15m'/'1h'"},
         },
         "required": ["ticker"],
@@ -149,7 +167,7 @@ DETECT_PATTERNS_TOOL = {
 ANALYZE_INDICATORS_TOOL = {
     "name": "analyze_technical_indicators",
     "description": (
-        "מחשב אינדיקטורים כמותיים (SMA20/50, EMA20, RSI14, ATR14, נפח יחסי) מתוך "
+        "מחשב אינדיקטורים כמותיים (SMA20/50/100/200, EMA10, RSI14, ATR14, MACD 12/26/9, נפח יחסי) מתוך "
         "נתוני OHLC. יש להעביר את תוצאת fetch_recent_ohlc כקלט (candles). "
         "שימושי לחיזוק/החלשת הביטחון בתזכיר, לא כתחליף לחוקי הברזל של evaluate_trade."
     ),
@@ -214,6 +232,7 @@ ALL_TOOLS = [
     FETCH_OHLC_TOOL,
     DETECT_PATTERNS_TOOL,
     ANALYZE_INDICATORS_TOOL,
+    ANALYZE_MULTI_TIMEFRAME_TOOL,
     FIND_SIMILAR_STOCKS_TOOL,
     EVALUATE_TRADE_TOOL,
     CALC_POSITION_SIZE_TOOL,

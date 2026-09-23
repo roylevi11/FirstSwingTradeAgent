@@ -12,7 +12,7 @@ import unittest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from tools.indicators import calc_sma, calc_ema, calc_rsi, calc_atr, calc_relative_volume
+from tools.indicators import calc_sma, calc_ema, calc_rsi, calc_atr, calc_relative_volume, calc_macd, analyze_indicators
 
 
 def _candle(close, high=None, low=None, volume=1000):
@@ -64,6 +64,50 @@ class TestIndicators(unittest.TestCase):
         """20 ימים בנפח 1000, יום אחרון בנפח 2000 -> נפח יחסי = 2.0."""
         candles = [_candle(c, volume=1000) for c in range(1, 21)] + [_candle(21, volume=2000)]
         self.assertEqual(calc_relative_volume(candles, period=20), 2.0)
+
+
+class TestMACD(unittest.TestCase):
+    def test_insufficient_data_returns_none(self):
+        candles = [_candle(c) for c in range(10)]
+        self.assertIsNone(calc_macd(candles))
+
+    def test_strong_uptrend_gives_positive_macd(self):
+        """במגמה עולה חזקה, ה-EMA המהיר (12) עולה מהר יותר מהאיטי (26) -> MACD חיובי."""
+        candles = [_candle(100 + i * 2) for i in range(60)]  # עלייה חדה ועקבית
+        result = calc_macd(candles)
+        self.assertIsNotNone(result)
+        self.assertGreater(result["macd"], 0)
+        self.assertIn("signal", result)
+        self.assertIn("histogram", result)
+        # histogram = macd - signal, לוודא עקביות פנימית
+        self.assertAlmostEqual(result["histogram"], result["macd"] - result["signal"], places=3)
+
+    def test_strong_downtrend_gives_negative_macd(self):
+        candles = [_candle(200 - i * 2) for i in range(60)]  # ירידה חדה ועקבית
+        result = calc_macd(candles)
+        self.assertIsNotNone(result)
+        self.assertLess(result["macd"], 0)
+
+    def test_flat_price_gives_near_zero_macd(self):
+        """מחיר קבוע לחלוטין -> EMA מהיר ואיטי מתכנסים לאותו ערך -> MACD קרוב לאפס."""
+        candles = [_candle(100) for _ in range(60)]
+        result = calc_macd(candles)
+        self.assertAlmostEqual(result["macd"], 0.0, places=6)
+
+
+class TestAnalyzeIndicatorsAggregate(unittest.TestCase):
+    def test_includes_all_expected_keys(self):
+        candles = [_candle(100 + i * 0.1) for i in range(250)]  # מספיק נרות לכל האינדיקטורים כולל SMA200
+        result = analyze_indicators(candles)
+        for key in ["sma_20", "sma_50", "sma_100", "sma_200", "ema_10", "rsi_14", "atr_14", "macd", "relative_volume_20d"]:
+            self.assertIn(key, result)
+        self.assertIsNotNone(result["sma_200"])  # עם 250 נרות, SMA200 אמור לחזור ערך אמיתי
+        self.assertIsNotNone(result["macd"])
+
+    def test_sma_200_none_with_insufficient_candles(self):
+        candles = [_candle(100 + i) for i in range(50)]  # פחות מ-200
+        result = analyze_indicators(candles)
+        self.assertIsNone(result["sma_200"])
 
 
 if __name__ == "__main__":

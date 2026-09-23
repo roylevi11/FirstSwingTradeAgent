@@ -13,12 +13,13 @@ market_data.py
 כך, ולעולם לא ממציאים מספר.
 """
 
+import time
 from dataclasses import dataclass
 from datetime import datetime
 
-import time
-
-import yfinance as yf
+# מרווחי זמן שנחשבים "תוך-יומיים" אצל yfinance ומוגבלים בחלון היסטוריה קצר.
+# "1d"/"1wk"/"1mo" אינם ברשימה - עליהם מותר history ארוך בהרבה (שנים).
+INTRADAY_INTERVALS = {"1m", "2m", "5m", "15m", "30m", "60m", "90m", "1h"}
 
 _PRICE_CACHE: dict[str, tuple[float, float | None]] = {}
 _PRICE_TTL_SECONDS = 60
@@ -41,6 +42,8 @@ def fetch_market_data(ticker: str) -> MarketSnapshot:
     שולף נתוני שוק עדכניים למניה בודדת.
     כל שדה שלא נמצא מדווח ב-missing_fields ומקבל None - אף פעם לא מומצא.
     """
+    import yfinance as yf  # ייבוא מושהה - נדרש רק כשקוראים לפונקציה בפועל
+
     yf_ticker = yf.Ticker(ticker)
     info = yf_ticker.info or {}
 
@@ -92,6 +95,8 @@ def fetch_live_price(ticker: str) -> float | None:
 
     price = None
     try:
+        import yfinance as yf  # ייבוא מושהה, כמו בשאר הקובץ
+
         t = yf.Ticker(key)
         price = t.fast_info.get("last_price") or t.fast_info.get("lastPrice")
         if price is None:
@@ -114,10 +119,13 @@ def fetch_recent_ohlc(ticker: str, days: int = 10, interval: str = "1d") -> list
     כמו "5m"/"15m"/"1h" - שדרוג חלקי וחינמי ל-DREAM-01 (קרוב הרבה יותר
     לזמן אמת מיום-סגירה, גם אם עדיין לא Tick-by-Tick אמיתי). yfinance
     מגביל היסטוריה תוך-יומית לחלון קצר (בד"כ עד 60 יום ל-1h/5m/15m,
-    ועד 7 ימים ל-1m) - זו מגבלת הספק החינמי, לא שגיאת קוד.
+    ועד 7 ימים ל-1m) - זו מגבלת הספק החינמי, לא שגיאת קוד. המגבלה הזו
+    לא חלה על "1d"/"1wk" - שם מותר history ארוך בהרבה.
     """
+    import yfinance as yf  # ייבוא מושהה - נדרש רק כשקוראים לפונקציה בפועל
+
     yf_ticker = yf.Ticker(ticker)
-    period = f"{days}d" if interval == "1d" else f"{min(days, 59)}d"
+    period = f"{min(days, 59)}d" if interval in INTRADAY_INTERVALS else f"{days}d"
     hist = yf_ticker.history(period=period, interval=interval)
 
     if hist.empty:
