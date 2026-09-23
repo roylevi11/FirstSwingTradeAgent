@@ -33,17 +33,6 @@ class TestParsers(unittest.TestCase):
         self.assertEqual(r["news"][0]["url"], "https://e.com/a?x=1&y=2")
         self.assertEqual(r["snapshot"]["P/E"], "28.36")
 
-    def test_stocktwits_sentiment_counts(self):
-        payload = {"symbol": {"watchlist_count": 5}, "messages": [
-            {"body": "a", "entities": {"sentiment": {"basic": "Bullish"}}},
-            {"body": "b", "entities": {"sentiment": {"basic": "Bullish"}}},
-            {"body": "c", "entities": {"sentiment": {"basic": "Bearish"}}},
-            {"body": "d", "entities": {"sentiment": None}},
-        ]}
-        r = x.parse_stocktwits(payload)
-        self.assertEqual((r["bullish"], r["bearish"]), (2, 1))
-        self.assertAlmostEqual(r["bullish_share_of_tagged"], 0.67, places=2)
-
     def test_tradingview_label_mapping(self):
         d = [0.0] * len(x._TV_COLUMNS)
         d[x._TV_COLUMNS.index("Recommend.All")] = 0.4
@@ -53,7 +42,7 @@ class TestParsers(unittest.TestCase):
 
     def test_network_failure_is_reported_not_hidden(self):
         with mock.patch.object(x, "_http", side_effect=OSError("boom")):
-            r = x.fetch_stocktwits("NVDA")
+            r = x.fetch_finviz("NVDA")
         self.assertFalse(r["available"])
         self.assertIn("boom", r["error"])
 

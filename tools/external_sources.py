@@ -5,12 +5,9 @@ external_sources.py
 
 - Finviz         : כותרות חדשות + נתוני snapshot (יעד אנליסטים, RSI, Short Float...)
                    - קריאת דף ה-quote הציבורי (HTML).
-- StockTwits     : סנטימנט קהילתי (Bullish/Bearish) מהזרם הציבורי של הסימבול.
 - TradingView    : המלצה טכנית מצטברת (Recommend.All) ואינדיקטורים, דרך נקודת
                    הקצה הציבורית של ה-scanner. אין כאן API רשמי - זו נקודת קצה
                    לא מתועדת שעלולה להשתנות; כל כשל מדווח, לא מוסתר.
-- MMR Screener   : marketmomentumradar.com/api/screener/momentum - אותו JSON
-                   שדף ה-momentum-screener עצמו קורא (MMR/Chart/Entry/Bottoming).
 
 כללי ברזל זהים לשאר הכלים: כל כשל (רשת, חסימה, שינוי מבנה) מוחזר כ-
 {"available": False, "error": ...} - לעולם לא ממציאים נתון חסר. בקשות
@@ -103,52 +100,6 @@ def fetch_finviz(ticker: str, limit: int = 8) -> dict:
         return {"ticker": ticker.upper(), **_fail("finviz", exc)}
 
 
-# ---------------------------- StockTwits ----------------------------
-
-
-def parse_stocktwits(payload: dict, max_messages: int = 5) -> dict:
-    messages = payload.get("messages", [])
-    bull = bear = 0
-    recent = []
-    for m in messages:
-        sentiment = ((m.get("entities") or {}).get("sentiment") or {}).get("basic")
-        if sentiment == "Bullish":
-            bull += 1
-        elif sentiment == "Bearish":
-            bear += 1
-        if len(recent) < max_messages:
-            recent.append(
-                {
-                    "created_at": m.get("created_at"),
-                    "user": (m.get("user") or {}).get("username"),
-                    "sentiment": sentiment,
-                    "text": (m.get("body") or "")[:240],
-                }
-            )
-    tagged = bull + bear
-    return {
-        "source": "stocktwits",
-        "available": True,
-        "messages_sampled": len(messages),
-        "bullish": bull,
-        "bearish": bear,
-        "bullish_share_of_tagged": round(bull / tagged, 2) if tagged else None,
-        "watchlist_count": (payload.get("symbol") or {}).get("watchlist_count"),
-        "recent_messages": recent,
-        "note": "סנטימנט קהילתי לא מסונן ורועש - אינדיקציה בלבד, לא בסיס להחלטה.",
-    }
-
-
-def fetch_stocktwits(ticker: str) -> dict:
-    try:
-        raw = _http(f"https://api.stocktwits.com/api/2/streams/symbol/{ticker.upper()}.json")
-        result = parse_stocktwits(json.loads(raw))
-        result["ticker"] = ticker.upper()
-        return result
-    except Exception as exc:
-        return {"ticker": ticker.upper(), **_fail("stocktwits", exc)}
-
-
 # ---------------------------- TradingView ----------------------------
 
 _TV_COLUMNS = [
@@ -210,77 +161,3 @@ def fetch_tradingview_technicals(ticker: str) -> dict:
         return result
     except Exception as exc:
         return {"ticker": t, **_fail("tradingview", exc)}
-
-
-# --------------------------- MMR screener ---------------------------
-
-_MMR_URL = "https://marketmomentumradar.com/api/screener/momentum"
-_MMR_PAGE = 500  # תקרת השרת לעמוד
-
-
-def _slim_mmr_row(row: dict) -> dict:
-    def g(block: str, key: str):
-        return (row.get(block) or {}).get(key)
-
-    event = row.get("event") or {}
-    return {
-        "ticker": row.get("ticker"),
-        "name": row.get("name"),
-        "as_of": row.get("as_of"),
-        "mmr_score": g("mmr", "mmr_score"),
-        "chart_score": g("chart", "chart_score"),
-        "entry_readiness": g("entry", "entry_readiness"),
-        "bottoming_score": g("bottoming", "bottoming_score"),
-        "bottoming_state": g("bottoming", "state"),
-        "event_state": event.get("state_label") if event.get("status") == "EVENT" else None,
-    }
-
-
-def fetch_momentum_screener(
-    ticker: str | None = None,
-    min_entry_readiness: float | None = None,
-    min_chart_score: float | None = None,
-    min_mmr_score: float | None = None,
-    limit: int = 10,
-) -> dict:
-    """
-    ללא ticker: מחזיר את המניות המובילות (Entry Readiness ואז Chart Score)
-    בהתאם לפילטרים. עם ticker: מחפש את המניה (עד ~8 עמודי 500 שורות,
-    ~2 שניות כל אחד; נשמר במטמון 5 דקות). הציונים הם של MMR - לא שלנו.
-    """
-    filters = {
-        "min_entry_readiness": min_entry_readiness,
-        "min_chart_score": min_chart_score,
-        "min_mmr_score": min_mmr_score,
-    }
-    query = "&".join(f"{k}={v}" for k, v in filters.items() if v is not None)
-    base = f"{_MMR_URL}?rank=entry_first&{query}" if query else f"{_MMR_URL}?rank=entry_first"
-
-    try:
-        if ticker is None:
-            data = json.loads(_http(f"{base}&limit={max(1, min(limit, 50))}"))
-            return {
-                "source": "mmr_screener",
-                "available": bool(data.get("ok")),
-                "matched": data["meta"].get("matched"),
-                "rows": [_slim_mmr_row(r) for r in data.get("rows", [])],
-            }
-
-        t = ticker.upper()
-        offset = 0
-        while True:
-            data = json.loads(_http(f"{base}&limit={_MMR_PAGE}&offset={offset}"))
-            for r in data.get("rows", []):
-                if (r.get("ticker") or "").upper() == t:
-                    return {"source": "mmr_screener", "available": True, "found": True, "row": _slim_mmr_row(r)}
-            offset += _MMR_PAGE
-            if offset >= (data["meta"].get("matched") or 0) or not data.get("rows"):
-                break
-        return {
-            "source": "mmr_screener",
-            "available": True,
-            "found": False,
-            "note": f"{t} לא מופיעה במניות שה-MMR מכסה ומצליחה לדרג (או עדיין 'pending').",
-        }
-    except Exception as exc:
-        return _fail("mmr_screener", exc)

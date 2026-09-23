@@ -25,12 +25,13 @@ from tools.similarity import find_similar_stocks, find_valid_alternative
 from tools.patterns import detect_patterns
 from tools.indicators import analyze_indicators
 from tools.multi_timeframe import analyze_multi_timeframe
+from tools.finviz_screener import run_momentum_screen
+from tools.stocktwits_sentiment import fetch_symbol_sentiment
+from tools.sec_filings import fetch_recent_filings
 from tools.risk import calc_position_size
 from tools.rules_engine import evaluate_hard_rules
 from tools.external_sources import (
     fetch_finviz,
-    fetch_momentum_screener,
-    fetch_stocktwits,
     fetch_tradingview_technicals,
 )
 from tools.orders import create_draft_order, format_memo_hebrew
@@ -78,26 +79,25 @@ def _dispatch_tool(tool_name: str, tool_input: dict) -> dict:
     if tool_name == "analyze_multi_timeframe":
         return analyze_multi_timeframe(tool_input["ticker"])
 
+    if tool_name == "run_finviz_screen":
+        results = run_momentum_screen(tool_input.get("filters"), tool_input.get("limit", 20))
+        return {"stocks": [r.__dict__ for r in results]}
+
+    if tool_name == "fetch_stocktwits_sentiment":
+        return fetch_symbol_sentiment(tool_input["ticker"])
+
+    if tool_name == "fetch_sec_filings":
+        filings = fetch_recent_filings(tool_input["ticker"], limit=tool_input.get("limit", 5))
+        return {"filings": filings}
+
     if tool_name == "evaluate_trade":
         return _dispatch_evaluate_trade(tool_input)
 
     if tool_name == "fetch_finviz":
         return fetch_finviz(tool_input["ticker"], tool_input.get("limit", 8))
 
-    if tool_name == "fetch_stocktwits_sentiment":
-        return fetch_stocktwits(tool_input["ticker"])
-
     if tool_name == "fetch_tradingview_technicals":
         return fetch_tradingview_technicals(tool_input["ticker"])
-
-    if tool_name == "fetch_momentum_screener":
-        return fetch_momentum_screener(
-            ticker=tool_input.get("ticker"),
-            min_entry_readiness=tool_input.get("min_entry_readiness"),
-            min_chart_score=tool_input.get("min_chart_score"),
-            min_mmr_score=tool_input.get("min_mmr_score"),
-            limit=tool_input.get("limit", 10),
-        )
 
     if tool_name == "calc_position_size":
         return calc_position_size(

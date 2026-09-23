@@ -112,6 +112,60 @@ ANALYZE_MULTI_TIMEFRAME_TOOL = {
     },
 }
 
+RUN_FINVIZ_SCREEN_TOOL = {
+    "name": "run_finviz_screen",
+    "description": (
+        "מריץ סריקת מניות רחבה מ-Finviz (גישה ציבורית חינמית, לא Finviz Elite) "
+        "לפי פילטרים (סקטור, מדד וכו'), ומחזיר רשימת מניות מועמדות מחוץ "
+        "לרשימת המעקב הקבועה. שימושי כשמבקשים 'למצוא הזדמנויות חדשות' "
+        "ולא רק לנתח מניה ידועה. כל מניה שמוחזרת מתויגת Source_Tag=Finviz_Screen."
+    ),
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "filters": {
+                "type": "object",
+                "description": "פילטרים בפורמט finvizfinance, למשל {\"Sector\": \"Technology\", \"Index\": \"S&P 500\"}",
+            },
+            "limit": {"type": "integer", "description": "מספר מניות מקסימלי להחזיר, ברירת מחדל 20"},
+        },
+        "required": [],
+    },
+}
+
+RUN_STOCKTWITS_SENTIMENT_TOOL = {
+    "name": "fetch_stocktwits_sentiment",
+    "description": (
+        "שולף סנטימנט קהילתי חי (Bullish/Bearish) עבור מניה מ-StockTwits "
+        "(DREAM-13). שימושי כאינדיקציה תומכת נוספת, לא כתחליף לחוקי הברזל. "
+        "אם אין הודעות מתויגות, bullish_ratio יחזור None - אין לפרש None כ-0.5."
+    ),
+    "input_schema": {
+        "type": "object",
+        "properties": {"ticker": {"type": "string"}},
+        "required": ["ticker"],
+    },
+}
+
+FETCH_SEC_FILINGS_TOOL = {
+    "name": "fetch_sec_filings",
+    "description": (
+        "שולף רשימת הדוחות האחרונים (10-K/10-Q/8-K כברירת מחדל) שהוגשו ל-SEC "
+        "עבור מניה, ישירות מ-EDGAR הרשמי (לא BamSEC - זה מוצר בתשלום שאין "
+        "לנו גישה אליו). מחזיר מטא-דאטה וקישור למסמך המקורי, לא טקסט מלא. "
+        "אם המשתמש מבקש 'ניתוח בשפה פשוטה' של דוח - סכם אתה, הסוכן, את "
+        "התוכן לפי הקישור, בעברית פשוטה, במקום להעביר את זה הלאה כמות שהוא."
+    ),
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "ticker": {"type": "string"},
+            "limit": {"type": "integer", "description": "מספר דוחות מקסימלי, ברירת מחדל 5"},
+        },
+        "required": ["ticker"],
+    },
+}
+
 FIND_SIMILAR_STOCKS_TOOL = {
     "name": "find_similar_stocks",
     "description": (
@@ -190,36 +244,10 @@ FETCH_FINVIZ_TOOL = {
     },
 }
 
-FETCH_STOCKTWITS_TOOL = {
-    "name": "fetch_stocktwits_sentiment",
-    "description": "StockTwits (חינמי): סנטימנט קהילתי Bullish/Bearish מ-30 ההודעות האחרונות על המניה + הודעות אחרונות. רועש - אינדיקציה משלימה בלבד.",
-    "input_schema": {"type": "object", "properties": {"ticker": {"type": "string"}}, "required": ["ticker"]},
-}
-
 FETCH_TRADINGVIEW_TOOL = {
     "name": "fetch_tradingview_technicals",
     "description": "TradingView (חינמי): המלצה טכנית מצטברת (Strong Buy...Strong Sell), RSI, SMA20/50/200, ATR, ADX, ביצועים. משלים את analyze_technical_indicators.",
     "input_schema": {"type": "object", "properties": {"ticker": {"type": "string"}}, "required": ["ticker"]},
-}
-
-FETCH_MOMENTUM_SCREENER_TOOL = {
-    "name": "fetch_momentum_screener",
-    "description": (
-        "Market Momentum Radar (חינמי): ציוני MMR (איכות עסק), Chart Score, Entry Readiness "
-        "ו-Bottoming. עם ticker - הדירוג של מניה אחת (איטי, כ-7 שניות בפעם הראשונה). "
-        "בלי ticker - המניות המובילות לפי פילטרים (למשל min_entry_readiness=8) לגילוי רעיונות. "
-        "הציונים הם של MMR, לא ניתוח שלנו - ציין זאת בתשובה."
-    ),
-    "input_schema": {
-        "type": "object",
-        "properties": {
-            "ticker": {"type": "string"},
-            "min_entry_readiness": {"type": "number"},
-            "min_chart_score": {"type": "number"},
-            "min_mmr_score": {"type": "number"},
-            "limit": {"type": "integer", "description": "עד 50, ברירת מחדל 10 (רק בלי ticker)"},
-        },
-    },
 }
 
 # הכלי המובנה של Claude API - המקביל ל-Grounding with Google Search
@@ -233,12 +261,13 @@ ALL_TOOLS = [
     DETECT_PATTERNS_TOOL,
     ANALYZE_INDICATORS_TOOL,
     ANALYZE_MULTI_TIMEFRAME_TOOL,
+    RUN_FINVIZ_SCREEN_TOOL,
+    RUN_STOCKTWITS_SENTIMENT_TOOL,
+    FETCH_SEC_FILINGS_TOOL,
     FIND_SIMILAR_STOCKS_TOOL,
     EVALUATE_TRADE_TOOL,
     CALC_POSITION_SIZE_TOOL,
     FETCH_FINVIZ_TOOL,
-    FETCH_STOCKTWITS_TOOL,
     FETCH_TRADINGVIEW_TOOL,
-    FETCH_MOMENTUM_SCREENER_TOOL,
     WEB_SEARCH_TOOL,
 ]

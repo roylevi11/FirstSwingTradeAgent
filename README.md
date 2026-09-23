@@ -83,9 +83,7 @@ python main.py NVDA
 | כלי | מקור | תוכן |
 |---|---|---|
 | `fetch_finviz` | Finviz | כותרות חדשות + snapshot (יעד אנליסטים, RSI, Short Float, דוחות) |
-| `fetch_stocktwits_sentiment` | StockTwits | סנטימנט קהילתי Bullish/Bearish |
 | `fetch_tradingview_technicals` | TradingView scanner | המלצה טכנית מצטברת + אינדיקטורים (נקודת קצה לא רשמית) |
-| `fetch_momentum_screener` | marketmomentumradar.com | ציוני MMR / Chart / Entry / Bottoming, וגילוי מניות מובילות |
 
 **מחיר תמיד חי:** המחיר בקובץ `data/watchlist.csv` אינו נקרא; `tools/market_data.fetch_live_price`
 (yfinance) הוא מקור המחיר, ו-`levels_status` ב-`fetch_watchlist_entry` מסמן רמות מתויגות שהתיישנו.
@@ -94,7 +92,7 @@ python main.py NVDA
 ```bash
 python3 -m unittest discover -s tests -v
 ```
-תוצאה צפויה: `Ran 58 tests ... OK`
+תוצאה צפויה: `Ran 65 tests ... OK`
 
 ## מה נאכף אוטומטית (Hard Rules, config/rules_config.py)
 | כלל | ברירת מחדל | הערה |
@@ -108,6 +106,11 @@ python3 -m unittest discover -s tests -v
 Phase A ממש חלק מהתשתית שכל שאר החלומות ייבנו עליה, ובנוסף מימוש **חלקי** של:
 - **DREAM-01** (נתונים חיים) — yfinance מחליף CSV סטטי; ניתוח רב-טווחי (5m עד 1D) פעיל; עדיין לא Tick-by-Tick אמיתי בתשלום.
 - **תמיכה/התנגדות/תבנית טכנית חיות** — `analyze_multi_timeframe` הוא כעת מקור האמת לכל עסקה, לא תיוג ידני ב-CSV (ראו `tools/multi_timeframe.py`).
+- **DREAM-12** (סריקת Finviz) — `tools/finviz_screener.py`, עוטף את הספרייה `finvizfinance`. **לא נבדק עם רשת אמיתית עדיין** - רק לוגיקת ההמרה שלנו.
+- **DREAM-13** (סנטימנט StockTwits) — `tools/stocktwits_sentiment.py`, API ציבורי רשמי ללא מפתח. **לא נבדק עם רשת אמיתית עדיין**.
+- **"BamSEC"** — הוחלף בפועל ב-**SEC EDGAR הרשמי והחינמי** (`tools/sec_filings.py`) — BamSEC הוא מוצר בתשלום עם התחברות, אין לנו גישה. יש להחליף את `SEC_USER_AGENT` בקובץ לפרטים אמיתיים לפני הרצה (SEC חוסם בלי זה).
+- **DREAM-09** (Market Momentum Radar) — **הוחלט לא לבנות אינטגרציה אוטומטית**: האתר מרונדר ב-JS (כמו TradingView), ו-robots.txt חוסם גישה אוטומטית במפורש. מחכה לטקסט Methodology/How It Works שהמשתמש ימצא ידנית, כדי לבנות ציון מורכב בהשראת העקרונות (לא חיקוי ישיר).
+- **DREAM-11** (P/E ושווי שוק) — הנתונים נשלפים בפועל (`fetch_market_data`), אך לפי החלטה מפורשת עדיין **לא אוכפים** כחוק ברזל - מידע בלבד כרגע.
 - תשתית ל-**REQ-04 / Audit Log** — כל תזכיר (מאושר/נדחה) נשמר אוטומטית ל-`data/audit_log.csv`.
 
 עדיין לא ממומש (מתוכנן לפאזות הבאות): DREAM-01 המלא (Tick-by-Tick בתשלום),
