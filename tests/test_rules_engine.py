@@ -71,13 +71,20 @@ class TestHardRulesEngine(unittest.TestCase):
         self.assertEqual(verdict.rejection_reasons, [])
 
     def test_rejected_on_earnings_proximity(self):
-        """מניה עם R:R מעולה אך רק יום אחד לדוחות - עדיין נדחית (בדיקת כלל בודד)."""
+        """מניה עם R:R מעולה אך דוחות היום ממש (0 ימי מסחר) - נדחית (בדיקת כלל בודד)."""
         verdict = evaluate_hard_rules(
-            days_to_earnings=1, entry_price=100, stop_loss=95, target_price=120
+            days_to_earnings=0, entry_price=100, stop_loss=95, target_price=120
         )
         self.assertFalse(verdict.passed)
         self.assertFalse(verdict.checks["earnings_proximity"][0])
         self.assertTrue(verdict.checks["risk_reward"][0])  # ה-R:R כן טוב (4.0)
+
+    def test_earnings_boundary_one_day_passes(self):
+        """עדכון 24.9.2026: הסף הנוכחי הוא 1 יום מסחר - בדיוק יום אחד אמור לעבור."""
+        verdict = evaluate_hard_rules(
+            days_to_earnings=1, entry_price=100, stop_loss=95, target_price=120
+        )
+        self.assertTrue(verdict.checks["earnings_proximity"][0])
 
     def test_rejected_on_both_rules(self):
         """מניה שנכשלת בשני הכללים בו-זמנית -> שתי סיבות דחייה מדווחות."""

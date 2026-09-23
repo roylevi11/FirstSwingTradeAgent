@@ -33,7 +33,8 @@ swing_copilot/
 │   ├── similarity.py         # Phase C: Cosine/Jaccard בקוד אמיתי, סקיילבילי
 │   ├── patterns.py           # Phase B: זיהוי תבניות (DREAM-02) - Inside Bar/Breakout/...
 │   ├── indicators.py         # Phase B: RSI/ATR/SMA/EMA/נפח יחסי (DREAM-03)
-│   ├── market_data.py        # yfinance: מחיר, שווי שוק, OHLC (כולל תוך-יומי, DREAM-01 חלקי)
+│   ├── market_data.py        # yfinance: מחיר, שווי שוק, OHLC (יומי + תוך-יומי)
+│   ├── multi_timeframe.py    # ניתוח חי רב-טווחי (5m/15m/30m/1h/4h/1D) - מקור האמת לתמיכה/התנגדות
 │   ├── earnings.py           # yfinance: מועד דוחות קרוב
 │   └── orders.py             # תזכיר עסקה + Audit Log (רואה ל-REQ-04)
 ├── agent/
@@ -81,19 +82,20 @@ python main.py NVDA
 ```bash
 python3 -m unittest discover -s tests -v
 ```
-תוצאה צפויה: `Ran 35 tests ... OK`
+תוצאה צפויה: `Ran 43 tests ... OK`
 
 ## מה נאכף אוטומטית (Hard Rules, config/rules_config.py)
 | כלל | ברירת מחדל | הערה |
 |---|---|---|
-| קרבה לדוחות | 5 ימי מסחר | בעבודה 2 נעשה שימוש זמני ב"יום אחד" לצורך בדיקה מבודדת; כאן חוזרים לספק המקורי מעבודה 1 |
+| קרבה לדוחות | 1 יום מסחר | עודכן במפורש ב-24.9.2026 (היה 5 ימים קודם לכן) |
 | יחס סיכון/סיכוי מינימלי | 1:2.0 | |
 | סיכון מקסימלי לעסקה | 1.5% מהתיק | |
 | שווי שוק מינימלי | מוגדר, לא נאכף עדיין | ייכנס לפעולה עם DREAM-11 |
 
 ## מיפוי מול מפת הדרכים (13 החלומות)
 Phase A ממש חלק מהתשתית שכל שאר החלומות ייבנו עליה, ובנוסף מימוש **חלקי** של:
-- **DREAM-01** (נתונים חיים) — yfinance מחליף CSV סטטי; עדיין לא Tick-by-Tick בזמן אמת.
+- **DREAM-01** (נתונים חיים) — yfinance מחליף CSV סטטי; ניתוח רב-טווחי (5m עד 1D) פעיל; עדיין לא Tick-by-Tick אמיתי בתשלום.
+- **תמיכה/התנגדות/תבנית טכנית חיות** — `analyze_multi_timeframe` הוא כעת מקור האמת לכל עסקה, לא תיוג ידני ב-CSV (ראו `tools/multi_timeframe.py`).
 - תשתית ל-**REQ-04 / Audit Log** — כל תזכיר (מאושר/נדחה) נשמר אוטומטית ל-`data/audit_log.csv`.
 
 עדיין לא ממומש (מתוכנן לפאזות הבאות): DREAM-01 המלא (Tick-by-Tick בתשלום),

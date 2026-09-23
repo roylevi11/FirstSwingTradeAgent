@@ -74,6 +74,23 @@ FETCH_WATCHLIST_TOOL = {
     },
 }
 
+ANALYZE_MULTI_TIMEFRAME_TOOL = {
+    "name": "analyze_multi_timeframe",
+    "description": (
+        "מריץ ניתוח טכני חי ומלא על פני 6 טווחי זמן (5m, 15m, 30m, 1h, 4h, 1D) - "
+        "עבור כל טווח: תמיכה/התנגדות דינמיות (Donchian, מחושבות מנתונים חיים, "
+        "לא תיוג ידני), תבניות שזוהו, ואינדיקטורים (RSI/ATR/SMA/נפח). "
+        "זהו מקור האמת היחיד לתמיכה/התנגדות/תבנית טכנית כעת - "
+        "אין להסתמך על Key_Support/Key_Resistance/Technical_Pattern "
+        "המתויגים ידנית ב-fetch_watchlist_entry עבור קביעת עסקה."
+    ),
+    "input_schema": {
+        "type": "object",
+        "properties": {"ticker": {"type": "string"}},
+        "required": ["ticker"],
+    },
+}
+
 FIND_SIMILAR_STOCKS_TOOL = {
     "name": "find_similar_stocks",
     "description": (
@@ -152,6 +169,7 @@ ALL_TOOLS = [
     FETCH_OHLC_TOOL,
     DETECT_PATTERNS_TOOL,
     ANALYZE_INDICATORS_TOOL,
+    ANALYZE_MULTI_TIMEFRAME_TOOL,
     FIND_SIMILAR_STOCKS_TOOL,
     EVALUATE_TRADE_TOOL,
     WEB_SEARCH_TOOL,
